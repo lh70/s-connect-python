@@ -117,7 +117,7 @@ Es wird das später definierte TCP-Protokoll zur Kommunikation verwendet.
 
 Folgende Sensoren werden (erstmal) unterstützt:
 * Sensor (Anschluss)
-* Temperatur (Intern) !!!Eventuell Testboards nicht vorhanden!!!
+* Temperatur (Intern) !!!Eventuell auf den Testboards nicht vorhanden!!!
 * Touchpad (Intern - Micropython Standard Library)
 * Potentiometer (Extern - Analog - 1 Pin)
 * GyroSensor (Extern - I2C) https://elektro.turanis.de/html/prj075/index.html
@@ -149,7 +149,41 @@ TODO
 TODO
 
 #### Das Netzwerkkommunikationsmodel
+Verwendete Module: 
+* Standard (MikroPython Standard): socket (usocket), struct (usocket), json (ujson)
+
+
+Verwendete Module für symmetrische Verschlüsselung (nur eventuell):
+* Python: 
+    * Standard: cryptography.fernet
+* Mikropython:
+    * Standard: ucryptolib.aes, ubinascii, uhashlib, utime, uos, ustruct
+    * Selbst implementiert: Fernet nach https://github.com/oz123/python-fernet/blob/master/fernet.py mit den Standard Libraries
+
+Verwendete Module für asymmetrische Verschlüsselung (nur eventuell):
 TODO
+
+Rssourcen:
+* https://hwwong168.wordpress.com/2019/09/25/esp32-micropython-implementation-of-cryptographic/
+* https://pypi.org/project/rsa/
+
+Der Stack:
+* TCP Socket Verbindung
+* Jede Nachricht besteht aus Länge + Nutzdaten. Die Länge hat das struct Format '!I', also ein unsigned Integer in big-endian.
+* (eventuell) Die Nutzdaten sind symmetrisch verschlüsselt mit AES
+* Die Nutzdaten sind ein UTF-8 kodierter String.
+* Der String enthält ein JSON-Object oder einen JSON-Array
+    * Handelt es sich um ein JSON-Object ist dies eine Steuernachricht
+    * Handelt es sich um einen JSON-Array ist dies eine Datennachricht
+
+Der Handshake:
+* Initial mit Verschlüsselung:
+    * der Client startet die Verbindung
+    * der Client schickt einen timestamp und ID signiert mit seinem public key an den Server
+    * der Server überprüft die Signatur und schickt einen symmetrischen Schlüssel verschlüsselt mit dem Public Key an den Client
+    * der Client und der Server initialisiern Fernet und kommunizieren ab jetzt noch mit verschlüsselt
+* der client schickt ein JSON-Object mit einer Sensor Datenanfrage
+* der server liefert JSON-Arrays mit den Daten bis der Socket geschlossen wird
 
 #### Testclient + Testserver
 TODO
