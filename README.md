@@ -179,11 +179,34 @@ Der Stack:
 Der Handshake:
 * Initial mit Verschlüsselung:
     * der Client startet die Verbindung
-    * der Client schickt einen timestamp und ID signiert mit seinem public key an den Server
+    * der Client schickt einen timestamp und ID signiert mit seinem Public Key an den Server
     * der Server überprüft die Signatur und schickt einen symmetrischen Schlüssel verschlüsselt mit dem Public Key an den Client
-    * der Client und der Server initialisiern Fernet und kommunizieren ab jetzt noch verschlüsselt
+    * der Client und der Server initialisiern Fernet und kommunizieren ab jetzt nur noch verschlüsselt
 * der client schickt ein JSON-Object mit einer Sensor Datenanfrage
 * der server liefert JSON-Arrays mit den Daten bis der Socket geschlossen wird
+
+Das JSON-Object:
+* Die Steuerbefehle sollen menschenlesbar sein. Somit sind hier die Geschwindigkeit und Bandbreitensparsamkeit nicht entscheidend.
+Dies ergibt sich auch dadurch das der effiziente Teil der Kommunikation auf die JSON-Arrays mit den Rechendaten geschoben wird.
+* Aufbau:
+    * (KEY: DATA)
+    * data-request: JSON-Object::
+        * sensor: "Sensor-Kind" -one-of-> (temperature, touchpad, poti, gyro, dht11)
+        * time-frame: "Integer" -> send values every x milliseconds 
+            * (0 or key not specified is wildcard for send every value individually -> probably slow)
+        * values-per-time-frame: "Integer" -> gather x timely evenly spaced values in a time-frame
+            * (time-frame has precedence over value-count, which means if the timeframe is expired, all gathered values will be send, 
+            even if the value-count is not met) 
+            * (0 or key not specified is wildcard for send as much values as possible per time-frame)
+
+Der JSON-Array:
+* Hier ist Geschwindigkeit wichtig. Alle Werte eines Timeframes werden in einem Array verschickt. 
+Das bedeutet es dürfen nur primitive oder serialisierbare Datentypen als Ergebnisse versendet werden.
+Als serialisierbar zählen Klassen welche direkt vom json-Modul als serialisierbar erkannt werden. 
+Somit sind die einzig komplexen zugelassenen Datentypen dict und list.
+* Aufbau:
+    * JSON-ARRAY::
+        * -list-of-> "Result-Object"
 
 #### Testclient + Testserver
 TODO
