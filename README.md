@@ -14,8 +14,8 @@ Dies wird ein Framework das auf Python und MicroPython basiert.
 
 Es soll einen zentral erstellten Rechenablauf dezentralisiert Verteilen können.
 
-Anwendungszweck des Frameworks wird das Generieren/Auslesen von Sensordaten von Mikrocontrollern wie der Arduino, 
-ESP8266 oder der ESP32 Plattform und das Auswerten dieser Sensordaten über verteilte Rechnersysteme.
+Anwendungszweck des Frameworks wird das Generieren/Auslesen von Sensordaten von Mikrocontrollern wie der ESP8266 oder
+der ESP32 Plattform und das Auswerten dieser Sensordaten über verteilte Rechnersysteme.
 
 Die Ziel/Endpunkte, sowie die beispielhafte Datenverarbeitung sind noch NICHT definiert.
 
@@ -75,7 +75,7 @@ aber auch die Komplexität, da beide Kommunikationen auch auf Python-Interprozes
 Hier ist noch KEINE Entscheidung gefallen.
 
 ### Das Framework
-Das Framework ist ein Programm, welches auf Python und eventuell auch auf C läuft (vereinfacht).
+Das Framework ist ein Programm, welches auf Python und Micropython läuft.
 Die Aufgabe des Frameworks ist es einen Verarbeitungsprozess auf vorhandene Rechner-Ressourcen aufzuteilen.
 
 Dazu sind mindestens die folgenden Entitäten nötig: 
@@ -181,7 +181,7 @@ Der Handshake:
     * der Client startet die Verbindung
     * der Client schickt einen timestamp und ID signiert mit seinem public key an den Server
     * der Server überprüft die Signatur und schickt einen symmetrischen Schlüssel verschlüsselt mit dem Public Key an den Client
-    * der Client und der Server initialisiern Fernet und kommunizieren ab jetzt noch mit verschlüsselt
+    * der Client und der Server initialisiern Fernet und kommunizieren ab jetzt noch verschlüsselt
 * der client schickt ein JSON-Object mit einer Sensor Datenanfrage
 * der server liefert JSON-Arrays mit den Daten bis der Socket geschlossen wird
 
