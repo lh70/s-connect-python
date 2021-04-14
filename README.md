@@ -10,7 +10,7 @@ Es soll die Optimierung der Verarbeitung von dezentral verarbeiteten kontinuierl
 BISHERIGE beobachtbare Größen und Optimierungsmöglichkeiten: Rechenpower, Verteilungsgrad, Netzwerk/Verbindungsverzögerung
 
 ## Ideen
-Dies wird ein Framework das auf Python und C basiert. 
+Dies wird ein Framework das auf Python und MicroPython basiert. 
 
 Es soll einen zentral erstellten Rechenablauf dezentralisiert Verteilen können.
 
@@ -32,12 +32,12 @@ liefert diese Daten so schnell wie möglich an die nächste Instanz und verbrauc
 * Ein Mikrocontroller ist für einen oder mehrere Sensoren zuständig und
 liefert vorgefilterte/verarbeitete Daten an die nächste Instanz weiter.
 Dadurch nimmt die Sensor-Abfragegeschwindigkeit entsprechend ab, 
-aber die Mikrocontroller selber wird teil des Rechenpower-Netzwerks an welches die Verarbeitung verteilt wird.
+aber der Mikrocontroller selber wird teil des Rechenpower-Netzwerks an welches die Verarbeitung verteilt wird.
 
 Punkt zwei inkludiert die Möglichkeit eins und ist daher aus Test- Mehrwertsicht klar zu Bevorzugen, 
-aber es erhöht den Grad an Komplexität, da das Framework auf zwei Programmiersprachen lauffähig gemacht werden muss.
-Der Standard, nach welchem die Verarbeitung geschrieben wird und die Verteilung an sich muss sprachenunabhängig sein.
-HIER ist noch KEINE Entscheidung gefallen.
+aber es erhöht den Grad an Komplexität, da das Framework auf mindestens zwei Sprachen lauffähig sein muss.
+Durch die Wahl von MicroPython kann dieser Aufwand reduziert werden, 
+da Code für beide Sprachen lauffähig geschrieben werden kann wenn einige Unterschiede beachtet werden.
 
 ### Die Kommunikation
 Die Kommunikation kann in zwei generelle Bereiche unterteilt werden. 
@@ -105,3 +105,51 @@ damit mögliche Routen an die Endgeräte mitgeteilt werden können.
 
 Zusätzlich wird die Fehlerbehebung anspruchsvoller, da ausgefallene Geräte einen zentralen Knotenpunkt darstellen können
 und somit unter Umständen keine ausweichende Verarbeitung möglich ist, aber dies stellt auch einen experimentellen Mehrwert dar.
+
+
+## Umsetzung
+### Revision 1 - Überblick
+Die Umsetzung erfolgt mit MicroPython
+
+Es wird der WIFI-fähige Mikrocontroller ESP-32-WROOM-32(D) verwendet.
+
+Es wird das später definierte TCP-Protokoll zur Kommunikation verwendet.
+
+Folgende Sensoren werden (erstmal) unterstützt:
+* Sensor (Anschluss)
+* Temperatur (Intern) !!!Eventuell Testboards nicht vorhanden!!!
+* Touchpad (Intern - Micropython Standard Library)
+* Potentiometer (Extern - Analog - 1 Pin)
+* GyroSensor (Extern - I2C) https://elektro.turanis.de/html/prj075/index.html
+* Temperatur + Feuchtigkeit (Extern - Micropython Standard Library) https://github.com/adidax/dht11
+
+#### MicroPython https://micropython.org
+Wie auf der Webseite von MicroPython gut beschrieben steht ist MicroPython eine Python Implementation für Mikrocontroller.
+Dabei ist ein kleiner Teil der Python 3 Standard Library (CPython) mit kleineren aber genau beschriebenen Abänderungen vorhanden.
+Dies ermöglicht es CPython und Mikropython kompatiblen Code zu schreiben.
+Um MicroPython zum laufen zu bekommen muss die Sprache und damit der Interpreter auf dem Mikrocontroller installiert werden.
+Es wird dann ein Interface zur Verfügung gestellt um mit der Installation zu interagieren. 
+Diese ist an der normalen Python Interpreter Shell orientiert, 
+bietet aber zusätzlich unter Anderem die Möglichkeit Programme an den Mikrocontroller zu überspielen und auszuführen.
+
+#### Framework - MicroPython - Revision 1
+Grundsätzlich wird das Framework Python und MikroPython kompatibel entworfen. 
+Dies soll im späteren Verlauf ermöglichen das das Framework auf allen Endgeräten gleiche Funktionalität bereitstellt.
+
+Die erste Priorität wird aber sein die Sensordaten auf den Mikrocontrollern auslesen zu können und über das Netzwerk an
+ein Endgerät zu schicken welches sich mit dem Mikrocontroller verbindet.
+
+Dazu werden die folgenden Komponenten zuerst entwickelt: Die Python-Repräsentation der Sensoren, 
+die Python-Repräsentation der Daten, das Netzwerkkommunikationsmodel, ein einfacher Testclient und Testserver.
+
+#### Python-Repräsentation der Sensoren
+TODO
+
+#### Python-Repräsentation der Daten
+TODO
+
+#### Das Netzwerkkommunikationsmodel
+TODO
+
+#### Testclient + Testserver
+TODO
