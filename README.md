@@ -108,7 +108,7 @@ und somit unter Umständen keine ausweichende Verarbeitung möglich ist, aber di
 
 
 ## Umsetzung
-### Revision 1 - Überblick
+### Version 1 - Überblick
 Die Umsetzung erfolgt mit MicroPython
 
 Es wird der WIFI-fähige Mikrocontroller ESP-32-WROOM-32(D) verwendet.
@@ -119,9 +119,12 @@ Folgende Sensoren werden (erstmal) unterstützt:
 * Sensor (Anschluss)
 * Temperatur (Intern) !!!Eventuell auf den Testboards nicht vorhanden!!!
 * Touchpad (Intern - Micropython Standard Library)
+* Hall Sensor (Intern - Micropython Standard Library)
 * Potentiometer (Extern - Analog - 1 Pin)
-* GyroSensor (Extern - I2C) https://elektro.turanis.de/html/prj075/index.html
+* Gyro Sensor (Extern - I2C) https://elektro.turanis.de/html/prj075/index.html
 * Temperatur + Feuchtigkeit (Extern - Micropython Standard Library) https://github.com/adidax/dht11
+* Ultraschall Sensor (Extern - Digital - 2 Pin - Trigger / Echo) https://create.arduino.cc/projecthub/abdularbi17/ultrasonic-sensor-hc-sr04-with-arduino-tutorial-327ff6
+* CO2 Sensor (Extern - Digital - 1 Pin) https://funduino.de/nr-51-co2-messung-mit-arduino-co2-ampel
 
 #### MicroPython https://micropython.org
 Wie auf der Webseite von MicroPython gut beschrieben steht ist MicroPython eine Python Implementation für Mikrocontroller.
@@ -132,7 +135,7 @@ Es wird dann ein Interface zur Verfügung gestellt um mit der Installation zu in
 Diese ist an der normalen Python Interpreter Shell orientiert, 
 bietet aber zusätzlich unter Anderem die Möglichkeit Programme an den Mikrocontroller zu überspielen und auszuführen.
 
-#### Framework - MicroPython - Revision 1
+#### Framework - MicroPython - Version 1
 Grundsätzlich wird das Framework Python und MikroPython kompatibel entworfen. 
 Dies soll im späteren Verlauf ermöglichen das das Framework auf allen Endgeräten gleiche Funktionalität bereitstellt.
 
@@ -143,10 +146,69 @@ Dazu werden die folgenden Komponenten zuerst entwickelt: Die Python-Repräsentat
 die Python-Repräsentation der Daten, das Netzwerkkommunikationsmodel, ein einfacher Testclient und Testserver.
 
 #### Python-Repräsentation der Sensoren
-TODO
+Die Sensoren bekommen ein eigenes modul, welches sensors genannt wird. 
+
+Aufgrund des knappen Speichers auf Mikrocontrollern wird jeder Sensor ein eigenes Sub-Modul bekommen,
+welches eine Klasse enthält, die die Sensorfunktionalität bereitstellt. 
+
+Das Sub-Modul und die Klasse bekommen den gleichen Namen, nach Python Konvention.
+(Modul startet klein, Klasse startet groß)
+
+Dadurch wird verhindert das ein Mikrocontroller alle Sensor-Klassen in einem Modul importiert, 
+obwohl meistens nur eine Sensorklasse verwendet wird.
+
+Jede Sensorklasse stellt einen indiviudellen Konstruktor und eine universelle get() Methode bereit. 
+Über diese Methode wird ein aktueller Sensorwert ausgelesen und zurückgegeben. 
+Für die meisten Sensoren sollte dies ausreichend sein, da der Auslesevorgang sehr in wenigen Mikrosekunden stattfindet.
+Auch I2C wird in diesem Zusammenhang als schnell genug angesehen. 
+
+Es gibt allerdings Sensoren mit langen und/oder variablen Antwortzeiten. 
+Dies betrifft zum Beispiel den Ultraschall Sensor und den CO2 Sensor.
+Bei diesen Sensoren kann davon ausgegangen werden das die Antwortzeit 'länger' dauert und 
+eine synchrone Abfrage den Mikrocontroller zu stark ausbremsen würde.
+Deshalb wird hier auf Hardware-Interrupts zurückgegriffen.
+Diese werden mit dem Initialisieren der Klasse aktiviert und sorgen für eine korrekte Abfrage der Sensorwerte. 
+Der aktuelle Sensorwert wird in eine atomare Variable gespeichert.
+
+Hier muss geschaut werden welche Größen nötig sind. Integer, Byte, Boolean und Arrays dieser sind möglich.
+Jedoch dürfen Integer die Größen 2\*\*30 -1 und -2\*\*30 nicht überschreiten, 
+da Python größere Integer (Long Integer) zwar unterstützt, aber für diese eine Objekt-Repräsentation wählt und 
+die Objekt-Allokation ist in Hardware-Interrupts deaktiviert.
+
+Grundsätzlich ist es möglich micropython.schedule() zu verwenden, was einen Software-Interrupt darstellt, 
+welcher dann jeden Python-Code ausführen kann, jedoch gibt es zwei Gründe dagegen: 
+* Erstens, den aktuellen Wert zu bestimmen und in eine vor-allokierte Variable zu speichern
+ist eine einfache Aufgabe die ohne Objekt-Allokation zu machen sein sollte.
+* Zweitens, Software-Interrupts haben keine zeitliche Garantie, 
+sodass die oft zeitlich kritische Abfrage und Berechnung der Sensorwerte ungenau wird.
+
+Die eigentliche Aufgabe von Software-Interrupts ist die nachträgliche Verarbeitung von mit Hardware-Interrupts aggregierten Sensorwerten.
+Da dies aber in diesem Framework von der Main-Loop übernommen wird kann komplett auf Software-Interrupts verzichtet werden.
+
+Sensoren mit Hardware-Interrupts liefern also mit ihrer get() Methode den aktuellsten Wert zurück, 
+der durch den letzten Interrupt-Handler geschrieben wurde.
 
 #### Python-Repräsentation der Daten
-TODO
+Damit die Sensor-Werte auch weiterverarbeitet werden können müssen sie in ein universelles Format gebracht werden.
+In dem Netzwerkabschnitt wird die Daten-Repräsentation in Form eines JSON Arrays gewählt. 
+In der nächsten Version des Frameworks soll jedoch auch die Verarbeitung intern erfolgen können und somit muss eine
+Repräsentation gewählt werden, welche für die Methodenübergänge möglichst effizient ist.
+
+An dieser Stelle wird für die zweite Version des Frameworks schon vorgegriffen. 
+Das Ziel wird es sein Verarbeitungsschritte beliebig hintereinander zu hängen und 
+eigentlich soll jeder Wert die komplette Verarbeitungskette einzeln durchlaufen. 
+Somit sollen lokal alle Schritte direkt aneinander gehängt werden, 
+aber verteilte Rechner haben das Problem das das Netzwerk keine Garantie liefert, wann gesendeter Wert ankommt.
+Deshalb werden hier die in der Netzwerkkommunikation beschriebenen zeitlichen Datenframes verwendet.
+
+Die Kontrolle darüber wann auf das Netzwerk verteilt wird und welche Zeit-Frames gewählt werden wird Aufgabe 
+des zukünftigen Kontrollers werden.
+
+Für die aktuelle Version ist es also ausreichend wenn die einzelnen Werte als Methoden-Rückgabe/-Eingabe weiterverarbeitet werden können.
+Durch das dynamische Typensystem in Python ist dies ohne Probleme möglich. 
+
+Am Ende der lokalen Kette steht dann eine Klasse welche beliebige (serialisierbare) Eingabe-Werte/-Objekte in Time-Frames aggregiert
+und diese and das Netzwerk-Modul weitergibt.
 
 #### Das Netzwerkkommunikationsmodel
 Verwendete Module: 
@@ -210,3 +272,8 @@ Somit sind die einzig komplexen zugelassenen Datentypen dict und list.
 
 #### Testclient + Testserver
 TODO
+
+### Version 2 - FUTURE
+Serialisieren von Funktionen:
+* https://medium.com/@emlynoregan/serialising-all-the-functions-in-python-cd880a63b591
+* https://stackoverflow.com/questions/1253528/is-there-an-easy-way-to-pickle-a-python-function-or-otherwise-serialize-its-cod
