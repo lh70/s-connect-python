@@ -3,6 +3,8 @@ import esp32
 
 class Hall:
 
+    communication_name = 'hall'
+
     """
     returns and integer of range +- unknown representing the current internal hall sensor reading
     """

@@ -4,6 +4,8 @@ from utime import ticks_ms, ticks_diff
 
 class CO2:
 
+    communication_name = 'co2'
+
     """
     Initialises a the 5000ppm CO2 sensor MH-Z19B to retrieve its values via the pwm output interrupt driven.
 

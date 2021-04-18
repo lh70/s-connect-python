@@ -4,6 +4,8 @@ from machine import Pin, time_pulse_us
 
 class Ultrasonic:
 
+    communication_name = 'ultrasonic'
+
     """
     Initialises an ultrasonic sensor with its trigger pin and echo pin
 

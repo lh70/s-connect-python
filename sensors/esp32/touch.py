@@ -3,6 +3,8 @@ from machine import Pin
 
 class Touch:
 
+    communication_name = 'touch'
+
     """
     This represents a touch sensor with integrated Logic, where there is only one output pin,
     which digitally represents the touched state.

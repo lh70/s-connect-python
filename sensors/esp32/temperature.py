@@ -3,6 +3,8 @@ import esp32
 
 class Temperature:
 
+    communication_name = 'temperature'
+
     """
     returns the internal temperature sensor reading in Fahrenheit as an integer
     """

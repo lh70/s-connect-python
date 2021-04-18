@@ -6,6 +6,8 @@ MPU6050_ADDRESS = const(0x68)
 
 class Gyro:
 
+    communication_name = 'gyro'
+
     """
     Initialises I2C with one of the default hardware I2C peripherals:
     0 -> scl_pin:18, sda_pin:19

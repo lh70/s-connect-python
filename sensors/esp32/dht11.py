@@ -3,6 +3,8 @@ import dht
 
 class DHT11:
 
+    communication_name = 'dht11'
+
     """
     Initialises the standard library DHT11 class with the input/output pin
 

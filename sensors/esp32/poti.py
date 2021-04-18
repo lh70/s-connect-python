@@ -9,6 +9,8 @@ ATT3_6V = const(ADC.ATTN_11DB)
 
 class Poti:
 
+    communication_name = 'poti'
+
     """
     pin:integer          must be in range 32-39 inclusive
 
