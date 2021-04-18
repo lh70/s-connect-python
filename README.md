@@ -106,6 +106,13 @@ damit mögliche Routen an die Endgeräte mitgeteilt werden können.
 Zusätzlich wird die Fehlerbehebung anspruchsvoller, da ausgefallene Geräte einen zentralen Knotenpunkt darstellen können
 und somit unter Umständen keine ausweichende Verarbeitung möglich ist, aber dies stellt auch einen experimentellen Mehrwert dar.
 
+## Setup
+Hier wird laufend aktualisiert wie das Projekt aufgesetzt ist.
+
+Repository: GitLab RWTH-Aachen: https://git.rwth-aachen.de/lukas.holst/bachelor-thesis
+
+Lokale Entwicklungs-Umgebung: PyCharm Community + MicroPython Plugin
+
 
 ## Umsetzung
 ### Version 1 - Überblick
@@ -118,13 +125,15 @@ Es wird das später definierte TCP-Protokoll zur Kommunikation verwendet.
 Folgende Sensoren werden (erstmal) unterstützt:
 * Sensor (Anschluss)
 * Temperatur (Intern) !!!Eventuell auf den Testboards nicht vorhanden!!!
-* Touchpad (Intern - Micropython Standard Library)
+* Capacitive Touch (Intern - Micropython Standard Library) 
+!!!Wird (erstmal) nicht implementiert, da selbst gebastelte kapazitive Touch-Sensoren nötig wären!!!
 * Hall Sensor (Intern - Micropython Standard Library)
 * Potentiometer (Extern - Analog - 1 Pin)
 * Gyro Sensor (Extern - I2C) https://elektro.turanis.de/html/prj075/index.html
 * Temperatur + Feuchtigkeit (Extern - Micropython Standard Library) https://github.com/adidax/dht11
 * Ultraschall Sensor (Extern - Digital - 2 Pin - Trigger / Echo) https://create.arduino.cc/projecthub/abdularbi17/ultrasonic-sensor-hc-sr04-with-arduino-tutorial-327ff6
 * CO2 Sensor (Extern - Digital - 1 Pin) https://funduino.de/nr-51-co2-messung-mit-arduino-co2-ampel
+* Capacitive Touch (Extern - Digital - 1 Pin)
 
 #### MicroPython https://micropython.org
 Wie auf der Webseite von MicroPython gut beschrieben steht ist MicroPython eine Python Implementation für Mikrocontroller.
@@ -146,7 +155,8 @@ Dazu werden die folgenden Komponenten zuerst entwickelt: Die Python-Repräsentat
 die Python-Repräsentation der Daten, das Netzwerkkommunikationsmodel, ein einfacher Testclient und Testserver.
 
 #### Python-Repräsentation der Sensoren
-Die Sensoren bekommen ein eigenes modul, welches sensors genannt wird. 
+Die Sensoren haben ein eigenes Modul namens sensors. Dieses Modul besitzt Sub-Module mit dem Namen der unterstützten Boards,
+worin dann die Implementationen der Sensoren liegen.
 
 Aufgrund des knappen Speichers auf Mikrocontrollern wird jeder Sensor ein eigenes Sub-Modul bekommen,
 welches eine Klasse enthält, die die Sensorfunktionalität bereitstellt. 
@@ -160,11 +170,12 @@ obwohl meistens nur eine Sensorklasse verwendet wird.
 Jede Sensorklasse stellt einen indiviudellen Konstruktor und eine universelle get() Methode bereit. 
 Über diese Methode wird ein aktueller Sensorwert ausgelesen und zurückgegeben. 
 Für die meisten Sensoren sollte dies ausreichend sein, da der Auslesevorgang sehr in wenigen Mikrosekunden stattfindet.
-Auch I2C wird in diesem Zusammenhang als schnell genug angesehen. 
+Auch I2C wird in diesem Zusammenhang als schnell genug angesehen, vorallem da eine Lösung mit Interrupts, 
+wie im folgenden Beschrieben mit I2C nicht möglich ist.
 
 Es gibt allerdings Sensoren mit langen und/oder variablen Antwortzeiten. 
-Dies betrifft zum Beispiel den Ultraschall Sensor und den CO2 Sensor.
-Bei diesen Sensoren kann davon ausgegangen werden das die Antwortzeit 'länger' dauert und 
+Dies betrifft zum Beispiel den CO2 Sensor.
+Bei diesem Sensor kann davon ausgegangen werden das die Antwortzeit 'länger' dauert und 
 eine synchrone Abfrage den Mikrocontroller zu stark ausbremsen würde.
 Deshalb wird hier auf Hardware-Interrupts zurückgegriffen.
 Diese werden mit dem Initialisieren der Klasse aktiviert und sorgen für eine korrekte Abfrage der Sensorwerte. 
