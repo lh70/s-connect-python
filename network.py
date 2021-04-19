@@ -25,10 +25,6 @@ MAX_UNSIGNED_INT = 4294967295
 # maximum receive network buffer
 MAX_RECEIVE_BYTES = 4096
 
-# change to non-blocking mode
-# MicroPython supports only one thread/process and therefore we need to implement everything synchronous
-socket.setdefaulttimeout(0)
-
 
 class Server:
 
@@ -40,6 +36,9 @@ class Server:
         # We will accept a maximum of x connect requests into our connect queue before we are busy
         # A connection gets out of this queue on socket creation
         self.socket.listen(max_connect_requests)
+        # change to non-blocking mode
+        # MicroPython supports only one thread/process and therefore we need to implement everything synchronous
+        self.socket.settimeout(0)
 
     def accept(self):
         try:
@@ -48,6 +47,10 @@ class Server:
             # no new connect request waiting
             return None
 
+        # change to non-blocking mode
+        # MicroPython supports only one thread/process and therefore we need to implement everything synchronous
+        client_socket.settimeout(0)
+
         return Transport(client_socket, address)
 
 
@@ -55,11 +58,12 @@ def Client(host, port):
     # create a standard ipv4 stream socket
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # connect to server
-    # this will raise an error because it cannot be completed immediately, but it will be done anyways
-    try:
-        client_socket.connect((host, port))
-    except OSError:
-        pass
+    # this will raise an error because it cannot be completed
+    client_socket.connect((host, port))
+    # change to non-blocking mode
+    # only do this after a successful connect so we take advantage of the timeout handling on blocking sockets
+    # MicroPython supports only one thread/process and therefore we need to implement everything synchronous
+    client_socket.settimeout(0)
 
     return Transport(client_socket, (host, port))
 
