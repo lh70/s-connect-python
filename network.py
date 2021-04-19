@@ -1,3 +1,5 @@
+from exceptions import NoReadableDataException, ConnectionClosedDownException
+
 try:
     import usocket as socket
 except ImportError:
@@ -162,11 +164,3 @@ class Transport:
             return json.loads(msg)
         except ValueError:
             raise NoReadableDataException()
-
-
-class NoReadableDataException(Exception):
-    pass
-
-
-class ConnectionClosedDownException(Exception):
-    pass

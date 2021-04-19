@@ -1,8 +1,10 @@
 from utime import sleep_us
 from machine import Pin, time_pulse_us
 
+from sensors.sensor import AbstractSensor
 
-class Ultrasonic:
+
+class Ultrasonic(AbstractSensor):
 
     communication_name = 'ultrasonic'
 
@@ -15,13 +17,14 @@ class Ultrasonic:
                      it is NOT recommended to pick one of the following pins: (1, 3) -> serial, (6, 7, 8, 11, 16, 17) -> embedded flash
     """
     def __init__(self, trigger_pin, echo_pin):
+        super().__init__()
         self.trigger_pin = Pin(trigger_pin, Pin.OUT, value=0)
         self.echo_pin = Pin(echo_pin, Pin.IN)
 
     """
-    returns an integer containing the time the trigger pulse took bouncing back 
+    sets an integer containing the time the trigger pulse took bouncing back 
     """
-    def get(self):
+    def update(self):
         # repeated function local access is faster than object reference
         tp = self.trigger_pin
         # ensure pin is initially low
@@ -32,7 +35,7 @@ class Ultrasonic:
         sleep_us(10)
         tp.value(0)
         # wait for echo == 0 -> 1
-        return time_pulse_us(self.echo_pin, 0, timeout_us=2000)
+        self.value = time_pulse_us(self.echo_pin, 0, timeout_us=2000)
 
     """
     utility function for later which converts the pulse duration to a distance in cm

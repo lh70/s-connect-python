@@ -1,8 +1,10 @@
 from machine import Pin
 from utime import ticks_ms, ticks_diff
 
+from sensors.sensor import AbstractSensor
 
-class CO2:
+
+class CO2(AbstractSensor):
 
     communication_name = 'co2'
 
@@ -13,6 +15,7 @@ class CO2:
                 it is NOT recommended to pick one of the following pins: (1, 3) -> serial, (6, 7, 8, 11, 16, 17) -> embedded flash
     """
     def __init__(self, pin):
+        super().__init__()
         self.pin = Pin(pin)
 
         self.high_pulse_1 = 0
@@ -25,6 +28,8 @@ class CO2:
         self.pin.irq(handler=self._interrupt, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
 
     """
+    overwrites the standard get method, because we use custom asynchronously updated data.
+    
     returns a valid pair of pulse durations as an integer tuple: (high_pulse, low_pulse)
     """
     def get(self):
@@ -33,6 +38,12 @@ class CO2:
             return self.high_pulse_1, self.low_pulse_1
         else:
             return self.high_pulse_2, self.low_pulse_2
+
+    """
+    NOP because we use interrupts to update this sensors data
+    """
+    def update(self):
+        pass
 
     """
     interrupt handler which sets the pulse durations

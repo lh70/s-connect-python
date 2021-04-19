@@ -1,8 +1,9 @@
-import time
+from sensors.sensor import AbstractSensor
 
-class Dummy:
+
+class Dummy(AbstractSensor):
 
     communication_name = 'dummy'
 
-    def get(self):
-        return 42
+    def update(self):
+        self.value = 42

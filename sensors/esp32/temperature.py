@@ -1,12 +1,14 @@
 import esp32
 
+from sensors.sensor import AbstractSensor
 
-class Temperature:
+
+class Temperature(AbstractSensor):
 
     communication_name = 'temperature'
 
     """
-    returns the internal temperature sensor reading in Fahrenheit as an integer
+    sets the internal temperature sensor reading in Fahrenheit as an integer
     """
-    def get(self):
-        return esp32.raw_temperature()
+    def update(self):
+        self.value = esp32.raw_temperature()

@@ -1,13 +1,15 @@
 from machine import ADC
 from micropython import const
 
+from sensors.sensor import AbstractSensor
+
 ATT1V = const(ADC.ATTN_0DB)
 ATT1_3V = const(ADC.ATTN_2_5DB)
 ATT2V = const(ADC.ATTN_6DB)
 ATT3_6V = const(ADC.ATTN_11DB)
 
 
-class Poti:
+class Poti(AbstractSensor):
 
     communication_name = 'poti'
 
@@ -23,11 +25,12 @@ class Poti:
 
     """
     def __init__(self, pin, attenuation=ATT1V):
+        super.__init__()
         ADC.atten(attenuation)
         self.adc = ADC(pin)
 
     """
-    returns values in range 0-4095
+    sets values in range 0-4095
     """
-    def get(self):
-        return self.adc.read()
+    def update(self):
+        self.value = self.adc.read()

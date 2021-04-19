@@ -1,5 +1,7 @@
 import network
 
+from exceptions import CommunicationException
+
 try:
     import usys as sys
 except ImportError:
@@ -15,19 +17,28 @@ RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
 
 class Server:
 
-    def __init__(self, port, *sensors):
+    def __init__(self, port, sensor_manager):
         self._server = network.Server(port)
 
-        self.sensors = {s.communication_name: s for s in sensors}
+        self.sensor_manager = sensor_manager
 
         self.connections = []
 
     def update(self):
+        # accept any new connection into the pool
         conn = self._server.accept()
         while conn:
-            self.connections.append(ServerConnection(conn, self.sensors))
+            self.connections.append(ServerConnection(conn, self.sensor_manager))
             conn = self._server.accept()
 
+        # update sensor values
+        self.sensor_manager.update()
+
+        # update connections
+        # order is valid:
+        #  sensor data is only used if the sensor is leased
+        #  that means a sensor must be updated before updating the connections
+        #  and a new lease will only come to effect (read sensor values) on the next iteration
         for connection in self.connections[:]:
             try:
                 connection.update()
@@ -39,9 +50,9 @@ class Server:
 
 class ServerConnection:
 
-    def __init__(self, connection, sensors):
+    def __init__(self, connection, sensor_manager):
         self.connection = connection
-        self.sensors = sensors
+        self.sensor_manager = sensor_manager
         # current task
         self.sensor = None
         self.time_frame = 0
@@ -50,29 +61,11 @@ class ServerConnection:
         self.last_time_frame = 0
         self.values_to_send = []
 
+    def __del__(self):
+        if self.sensor:
+            self.sensor_manager.release_sensor_lease(self.sensor)
+
     def update(self):
-        # check for new control messages
-        try:
-            obj = self.connection.recv()
-        except network.NoReadableDataException:
-            pass
-        else:
-            if isinstance(obj, dict):
-                if 'sensor' in obj and obj['sensor'] in self.sensors:
-                    self.sensor = self.sensors[obj['sensor']]
-                if 'time-frame' in obj:
-                    try:
-                        self.time_frame = int(obj['time-frame'])
-                    except ValueError as e:
-                        raise CommunicationException('wrong value for time-frame: '.format(e))
-                if 'value-per-time-frame' in obj:
-                    try:
-                        self.values_per_time_frame = int(obj['values-per-time-frame'])
-                    except ValueError as e:
-                        raise CommunicationException('wrong value for values-per-time-frame: '.format(e))
-            else:
-                # alternative is list -> data message, but server connections do not process these (yet)
-                pass
         # update and maybe send sensor values
         if self.sensor:
             if self._time_frame_expired:
@@ -81,6 +74,35 @@ class ServerConnection:
                 self._reset_time_frame()
             else:
                 self.values_to_send.append(self.sensor.get())
+
+        # check for new control messages
+        # do this last so changed controls affect only the new iteration
+        try:
+            obj = self.connection.recv()
+        except network.NoReadableDataException:
+            pass
+        else:
+            if isinstance(obj, dict):
+                if 'sensor' in obj:
+                    # if we get a new data request do first abandon the old one
+                    if self.sensor:
+                        self.sensor_manager.release_sensor_lease(self.sensor)
+                    # tell the manager we need new sensor data
+                    # raises CommunicationException on wrong sensor name
+                    self.sensor = self.sensor_manager.get_sensor_lease(obj['sensor'])
+                if 'time-frame' in obj:
+                    try:
+                        self.time_frame = int(obj['time-frame'])
+                    except ValueError as e:
+                        raise CommunicationException('wrong value for time-frame: {}'.format(e))
+                if 'value-per-time-frame' in obj:
+                    try:
+                        self.values_per_time_frame = int(obj['values-per-time-frame'])
+                    except ValueError as e:
+                        raise CommunicationException('wrong value for values-per-time-frame: {}'.format(e))
+            else:
+                # alternative is list -> data message, but server connections do not process these (yet)
+                pass
 
     @property
     def _time_frame_expired(self):
@@ -128,7 +150,3 @@ class Client:
             pass
         else:
             print(len(data), flush=True)
-
-
-class CommunicationException(Exception):
-    pass

@@ -1,10 +1,12 @@
 from machine import I2C
 from micropython import const
 
+from sensors.sensor import AbstractSensor
+
 MPU6050_ADDRESS = const(0x68)
 
 
-class Gyro:
+class Gyro(AbstractSensor):
 
     communication_name = 'gyro'
 
@@ -18,16 +20,17 @@ class Gyro:
     Frequency is also kept at default 400000Hz which is the maximum rating for the MPU6050 sensor.
     """
     def __init__(self, hw_i2c=0):
+        super().__init__()
         self.i2c = I2C(hw_i2c)
 
         # MPU6050 stores 7 different values, with 2 registers == bytes per value
-        self.buf = bytearray(14)
+        self.value = bytearray(14)
 
         # write 0x00 == reset into the register 0x6B
         self.i2c.writeto_mem(MPU6050_ADDRESS, 0x6B, b'\x00')
 
     """
-    returns a 14 bytes long array. Every 2 bytes form a valid value.
+    sets a 14 bytes long array. Every 2 bytes form a valid value.
     Values in order:
     Acceleration X
     Acceleration Y
@@ -37,10 +40,8 @@ class Gyro:
     Gyro Y
     Gyro Z
     """
-    def get(self):
-        self.i2c.readfrom_mem_into(MPU6050_ADDRESS, 0x3B, self.buf)
-
-        return self.buf
+    def update(self):
+        self.i2c.readfrom_mem_into(MPU6050_ADDRESS, 0x3B, self.value)
 
     """
     Utility for later which combines the the 14 bytes into a 7 items long integer list

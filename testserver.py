@@ -1,4 +1,5 @@
 from communication import Server
+from sensors.manage import SensorManager
 
 from sensors.esp32.dummy import Dummy
 
@@ -6,7 +7,9 @@ from sensors.esp32.dummy import Dummy
 def run():
     dummy_sensor = Dummy()
 
-    server = Server(8090, dummy_sensor)
+    sensor_manager = SensorManager(dummy_sensor)
+
+    server = Server(8090, sensor_manager)
 
     while True:
         server.update()
