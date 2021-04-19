@@ -1,6 +1,6 @@
 from machine import Pin
 
-from sensors.sensor import AbstractSensor
+from lh_lib.sensors.sensor import AbstractSensor
 
 
 class Touch(AbstractSensor):

@@ -1,7 +1,7 @@
-from communication import Server
-from sensors.manage import SensorManager
+from lh_lib.communication import Server
+from lh_lib.sensors.manage import SensorManager
 
-from sensors.esp32.dummy import Dummy
+from lh_lib.sensors.esp32.dummy import Dummy
 
 
 def run():

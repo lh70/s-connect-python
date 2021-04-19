@@ -1,6 +1,6 @@
-import network
+import lh_lib.network
 
-from exceptions import CommunicationException
+from lh_lib.exceptions import CommunicationException
 
 try:
     import usys as sys
@@ -17,13 +17,28 @@ RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
 
 class Server:
 
+    """
+    initialises a server which listens on port x for new connections
+    and can serve sensor data provided by the sensor_manager to clients
+
+    port:integer the port to listen to
+    sensor_manager:SensorManger a sensor_manager object with containing the initialised sensors
+    """
     def __init__(self, port, sensor_manager):
-        self._server = network.Server(port)
+        self._server = lh_lib.network.Server(port)
 
         self.sensor_manager = sensor_manager
 
         self.connections = []
 
+    """
+    accepts new connections
+    updates the sensor_manager and thereby the sensors
+    updates the connections
+    removes connections on disconnect
+    
+    to be called regularly
+    """
     def update(self):
         # accept any new connection into the pool
         conn = self._server.accept()
@@ -44,12 +59,19 @@ class Server:
                 connection.update()
             except CommunicationException as e:
                 connection.send_error(e)
-            except network.ConnectionClosedDownException:
+            except lh_lib.network.ConnectionClosedDownException:
                 self.connections.remove(connection)
 
 
 class ServerConnection:
 
+    """
+    represents an individual connection from the server to a client
+    wraps the transport layer and provides a reactive json-protocol-layer
+
+    connection:Transport an instance of the Transport class
+    sensor_manager:SensorManager the servers sensor_manager to communicate with
+    """
     def __init__(self, connection, sensor_manager):
         self.connection = connection
         self.sensor_manager = sensor_manager
@@ -61,10 +83,20 @@ class ServerConnection:
         self.last_time_frame = 0
         self.values_to_send = []
 
+    """
+    removes a sensors lease on garbage collection -> after connection breakdown
+    """
     def __del__(self):
         if self.sensor:
             self.sensor_manager.release_sensor_lease(self.sensor)
 
+    """
+    either sends the currently aggregated timeframe of sensor data or
+    adds sensor data to the current timeframe or
+    does nothing when no sensor is currently requested
+    
+    and checks if sensor data gets requested
+    """
     def update(self):
         # update and maybe send sensor values
         if self.sensor:
@@ -79,7 +111,7 @@ class ServerConnection:
         # do this last so changed controls affect only the new iteration
         try:
             obj = self.connection.recv()
-        except network.NoReadableDataException:
+        except lh_lib.network.NoReadableDataException:
             pass
         else:
             if isinstance(obj, dict):
@@ -104,6 +136,12 @@ class ServerConnection:
                 # alternative is list -> data message, but server connections do not process these (yet)
                 pass
 
+    """
+    checks if the current timeframe has expired
+    this is done differently on MicroPython and CPython to be compatible with both
+    
+    returns a boolean
+    """
     @property
     def _time_frame_expired(self):
         if self.time_frame == 0:
@@ -117,21 +155,40 @@ class ServerConnection:
             # time_ns() is converted to milliseconds with rounding using only integer arithmetic
             return (time.perf_counter_ns() + 500000) // 1000000 - self.last_time_frame >= self.time_frame
 
+    """
+    resets the current timeframe in a MicroPython and CPython compatible manner
+    to be called after a timeframe has expired
+    """
     def _reset_time_frame(self):
         if RUNNING_MICROPYTHON:
             self.last_time_frame = time.ticks_ms()
         else:
             self.last_time_frame = (time.perf_counter_ns() + 500000) // 1000000
 
+    """
+    sends a string serializable object as error message back to the client
+    to be used on wrong control messages sent by client for debugging
+    
+    communication_exception_obj:string serializable object
+    """
     def send_error(self, communication_exception_obj):
         self.connection.send({'error': '{}'.format(communication_exception_obj)})
 
 
 class Client:
 
-    def __init__(self, host, port):
-        self.connection = network.Client(host, port)
+    """
+    initializes a client which connects to a given host
 
+    host:string a network host identifier
+    port:integer the port to connect to on host
+    """
+    def __init__(self, host, port):
+        self.connection = lh_lib.network.Client(host, port)
+
+    """
+    issues a sensor request to the server in the compatible format
+    """
     def request_data(self, sensor, time_frame=None, values_per_time_frame=None):
         control_obj = {
             'sensor': sensor
@@ -143,10 +200,15 @@ class Client:
 
         self.connection.send(control_obj)
 
+    """
+    simple data retrieval method which simply prints the length of the data-array the server sends on each message
+    
+    to be called continuously
+    """
     def receive_and_print_data(self):
         try:
             data = self.connection.recv()
-        except network.NoReadableDataException:
+        except lh_lib.network.NoReadableDataException:
             pass
         else:
             print(len(data), flush=True)

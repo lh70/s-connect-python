@@ -1,7 +1,7 @@
 from machine import Pin
 from utime import ticks_ms, ticks_diff
 
-from sensors.sensor import AbstractSensor
+from lh_lib.sensors.sensor import AbstractSensor
 
 
 class CO2(AbstractSensor):

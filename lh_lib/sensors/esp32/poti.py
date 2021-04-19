@@ -1,7 +1,7 @@
 from machine import ADC
 from micropython import const
 
-from sensors.sensor import AbstractSensor
+from lh_lib.sensors.sensor import AbstractSensor
 
 ATT1V = const(ADC.ATTN_0DB)
 ATT1_3V = const(ADC.ATTN_2_5DB)

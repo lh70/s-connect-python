@@ -1,7 +1,7 @@
 from machine import I2C
 from micropython import const
 
-from sensors.sensor import AbstractSensor
+from lh_lib.sensors.sensor import AbstractSensor
 
 MPU6050_ADDRESS = const(0x68)
 

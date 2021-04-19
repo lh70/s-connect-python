@@ -1,7 +1,7 @@
 from utime import sleep_us
 from machine import Pin, time_pulse_us
 
-from sensors.sensor import AbstractSensor
+from lh_lib.sensors.sensor import AbstractSensor
 
 
 class Ultrasonic(AbstractSensor):

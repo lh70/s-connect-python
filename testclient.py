@@ -1,7 +1,9 @@
-from communication import Client
+from lh_lib.communication import Client
 
 
 def run():
+    # client = Client('192.168.2.200', 8090)
+
     client = Client('127.0.0.1', 8090)
 
     client.request_data('dummy', 10)

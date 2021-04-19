@@ -1,4 +1,4 @@
-from sensors.sensor import AbstractSensor
+from lh_lib.sensors.sensor import AbstractSensor
 
 
 class Dummy(AbstractSensor):

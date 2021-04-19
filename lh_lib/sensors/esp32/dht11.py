@@ -1,6 +1,6 @@
 import dht
 
-from sensors.sensor import AbstractSensor
+from lh_lib.sensors.sensor import AbstractSensor
 
 
 class DHT11(AbstractSensor):

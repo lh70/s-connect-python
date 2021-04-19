@@ -1,6 +1,6 @@
 import esp32
 
-from sensors.sensor import AbstractSensor
+from lh_lib.sensors.sensor import AbstractSensor
 
 
 class Temperature(AbstractSensor):
