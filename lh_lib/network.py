@@ -83,7 +83,8 @@ def Client(host, port):
 
 class Transport:
 
-    length_struct = struct.Struct('!I')
+    length_struct_fmt = '!I'
+    length_struct_size = struct.calcsize(length_struct_fmt)
 
     """
     initialises with a connected socket and exposes methods to send and receive data with this projects own protocol
@@ -123,7 +124,7 @@ class Transport:
     length can not be bigger than a maximum 32bit unsigned integer -> 4294967295
     """
     def _send_with_length(self, msg):
-        self._send_over_socket(self.length_struct.pack(len(msg)))
+        self._send_over_socket(struct.pack(self.length_struct_fmt, len(msg)))
         self._send_over_socket(msg)
 
     """
@@ -176,7 +177,7 @@ class Transport:
     returns bytes
     """
     def _recv_with_length(self):
-        msg = self._recv_over_socket(self.length_struct.size)
+        msg = self._recv_over_socket(self.length_struct_size)
 
         # empty message means no data could be received
         if len(msg) == 0:
@@ -184,12 +185,12 @@ class Transport:
 
         # else we need the message length
         # this can take time as we ignore the mass of empty (not ready) messages we can receive
-        while len(msg) < self.length_struct.size:
-            msg += self._recv_over_socket(self.length_struct.size - len(msg))
+        while len(msg) < self.length_struct_size:
+            msg += self._recv_over_socket(self.length_struct_size - len(msg))
 
         # unpack the length and receive the rest of the message
         # unpack returns always a tuple, which in our case contains only one item
-        length = self.length_struct.unpack(msg)[0]
+        length = struct.unpack(self.length_struct_fmt, msg)[0]
 
         # this can take time as we ignore the mass of empty (not ready) messages we can receive
         msg = self._recv_over_socket(min(length, MAX_RECEIVE_BYTES))

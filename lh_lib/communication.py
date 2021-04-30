@@ -1,6 +1,7 @@
 import lh_lib.network
 
 from lh_lib.exceptions import CommunicationException
+from lh_lib.logging import log
 
 try:
     import usys as sys
@@ -44,6 +45,7 @@ class Server:
         conn = self._server.accept()
         while conn:
             self.connections.append(ServerConnection(conn, self.sensor_manager))
+            log("new connection: {} | num connections: {}", conn.address, len(self.connections))
             conn = self._server.accept()
 
         # update sensor values
@@ -61,6 +63,7 @@ class Server:
                 connection.send_error(e)
             except lh_lib.network.ConnectionClosedDownException:
                 self.connections.remove(connection)
+                log("connection closed: {} | num connections: {}", connection.connection.address, len(self.connections))
 
 
 class ServerConnection:
@@ -201,14 +204,12 @@ class Client:
         self.connection.send(control_obj)
 
     """
-    simple data retrieval method which simply prints the length of the data-array the server sends on each message
+    simple data retrieval method which simply returns data or None 
     
     to be called continuously
     """
-    def receive_and_print_data(self):
+    def receive_data(self):
         try:
-            data = self.connection.recv()
+            return self.connection.recv()
         except lh_lib.network.NoReadableDataException:
             pass
-        else:
-            print(len(data), flush=True)

@@ -1,12 +1,11 @@
-from machine import ADC
-from micropython import const
+from machine import Pin, ADC
 
 from lh_lib.sensors.sensor import AbstractSensor
 
-ATT1V = const(ADC.ATTN_0DB)
-ATT1_3V = const(ADC.ATTN_2_5DB)
-ATT2V = const(ADC.ATTN_6DB)
-ATT3_6V = const(ADC.ATTN_11DB)
+ATT1V = ADC.ATTN_0DB
+ATT1_3V = ADC.ATTN_2_5DB
+ATT2V = ADC.ATTN_6DB
+ATT3_6V = ADC.ATTN_11DB
 
 
 class Poti(AbstractSensor):
@@ -25,9 +24,9 @@ class Poti(AbstractSensor):
 
     """
     def __init__(self, pin, attenuation=ATT1V):
-        super.__init__()
-        ADC.atten(attenuation)
-        self.adc = ADC(pin)
+        super().__init__()
+        self.adc = ADC(Pin(pin, Pin.IN))
+        self.adc.atten(attenuation)
 
     """
     sets values in range 0-4095
