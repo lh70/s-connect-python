@@ -42,3 +42,5 @@ class DHT11(AbstractSensor):
             self.d.measure()
             self.value = (self.d.temperature(), self.d.humidity())
             self.last_measuring = ticks_ms()
+        else:
+            self.value = None

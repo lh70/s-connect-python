@@ -9,6 +9,7 @@ from lh_lib.sensors.esp32.touch import Touch
 from lh_lib.sensors.esp32.temperature import Temperature
 from lh_lib.sensors.esp32.dht11 import DHT11
 from lh_lib.sensors.esp32.gyro import Gyro
+from lh_lib.sensors.esp32.ultrasonic import Ultrasonic
 
 
 def run():
@@ -19,8 +20,9 @@ def run():
     temperature_sensor = Temperature()
     dht11_sensor = DHT11(13)
     gyro_sensor = Gyro()
+    ultrasonic_sensor = Ultrasonic(25, 33)
 
-    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, gyro_sensor)
+    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, gyro_sensor, ultrasonic_sensor)
 
     server = Server(8090, sensor_manager)
 

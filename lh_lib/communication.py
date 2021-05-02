@@ -104,12 +104,12 @@ class ServerConnection:
     def update(self):
         # update and maybe send sensor values
         if self.sensor:
+            if self.sensor.value is not None:
+                self.values_to_send.append(self.sensor.value)
             if self._time_frame_expired:
                 self.connection.send(self.values_to_send)
                 self.values_to_send = []
                 self._reset_time_frame()
-            else:
-                self.values_to_send.append(self.sensor.get())
 
         # check for new control messages
         # do this last so changed controls affect only the new iteration
