@@ -62,6 +62,7 @@ class Server:
             except CommunicationException as e:
                 connection.send_error(e)
             except lh_lib.network.ConnectionClosedDownException:
+                connection.cleanup()
                 self.connections.remove(connection)
                 log("connection closed: {} | num connections: {}", connection.connection.address, len(self.connections))
 
@@ -87,9 +88,9 @@ class ServerConnection:
         self.values_to_send = []
 
     """
-    removes a sensors lease on garbage collection -> after connection breakdown
+    removes the sensor lease if necessary -> after connection breakdown
     """
-    def __del__(self):
+    def cleanup(self):
         if self.sensor:
             self.sensor_manager.release_sensor_lease(self.sensor)
 
