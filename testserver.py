@@ -1,3 +1,5 @@
+from micropython import alloc_emergency_exception_buf
+
 from lh_lib.communication import Server
 from lh_lib.sensors.manage import SensorManager
 from lh_lib.logging import log
@@ -10,6 +12,9 @@ from lh_lib.sensors.esp32.temperature import Temperature
 from lh_lib.sensors.esp32.dht11 import DHT11
 from lh_lib.sensors.esp32.gyro import Gyro
 from lh_lib.sensors.esp32.ultrasonic import Ultrasonic
+from lh_lib.sensors.esp32.rotary_encoder import RotaryEncoder
+
+alloc_emergency_exception_buf(100)
 
 
 def run():
@@ -21,8 +26,9 @@ def run():
     dht11_sensor = DHT11(13)
     gyro_sensor = Gyro()
     ultrasonic_sensor = Ultrasonic(25, 33)
+    rotary_encoder_sensor = RotaryEncoder(34, 26)
 
-    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, gyro_sensor, ultrasonic_sensor)
+    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, gyro_sensor, ultrasonic_sensor, rotary_encoder_sensor)
 
     server = Server(8090, sensor_manager)
 

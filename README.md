@@ -134,6 +134,7 @@ Folgende Sensoren werden (erstmal) unterstützt:
 * Ultraschall Sensor (Extern - Digital - 2 Pin - Trigger / Echo) https://create.arduino.cc/projecthub/abdularbi17/ultrasonic-sensor-hc-sr04-with-arduino-tutorial-327ff6
 * CO2 Sensor (Extern - Digital - 1 Pin) https://funduino.de/nr-51-co2-messung-mit-arduino-co2-ampel
 * Capacitive Touch (Extern - Digital - 1 Pin)
+* (Incremental) Rotary Encoder (Extern - Digital - 2 Pin) https://github.com/peterhinch/micropython-samples/blob/master/encoders/encoder_portable.py
 
 #### MicroPython https://micropython.org
 Wie auf der Webseite von MicroPython gut beschrieben steht ist MicroPython eine Python Implementation für Mikrocontroller.
