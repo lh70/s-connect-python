@@ -1,5 +1,5 @@
 from machine import Pin
-from utime import ticks_ms, ticks_diff
+from utime import ticks_us, ticks_diff
 
 from lh_lib.sensors.sensor import AbstractSensor
 
@@ -16,59 +16,41 @@ class CO2(AbstractSensor):
     """
     def __init__(self, pin):
         super().__init__()
-        self.pin = Pin(pin)
+        self.pin = Pin(pin, Pin.IN)
 
-        self.high_pulse_1 = 0
-        self.low_pulse_1 = 0
-        self.high_pulse_2 = 0
-        self.low_pulse_2 = 0
-        self.take_1 = True
+        self.high_pulse = 0
+        self.low_pulse = 0
+        self.pulses_changed = False
 
-        self.last_interrupt_time = ticks_ms()
-        self.pin.irq(handler=self._interrupt, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING, hard=True)
-
-    """
-    overwrites the standard get method, because we use custom asynchronously updated data.
-    
-    returns a valid pair of pulse durations as an integer tuple: (high_pulse, low_pulse)
-    """
-    def get(self):
-        # if the first pair is valid return it
-        if self.take_1:
-            return self.high_pulse_1, self.low_pulse_1
-        else:
-            return self.high_pulse_2, self.low_pulse_2
+        self.last_interrupt_time = ticks_us()
+        self.pin.irq(handler=self._interrupt, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING)
 
     """
     NOP because we use interrupts to update this sensors data
     """
     def update(self):
-        pass
+        if self.pulses_changed:
+            self.value = self.high_pulse, self.low_pulse
+            self.pulses_changed = False
+        else:
+            self.value = None
 
     """
     interrupt handler which sets the pulse durations
     """
-    def _interrupt(self):
+    def _interrupt(self, pin):
         # determine the time duration since last interrupt
-        duration = ticks_diff(ticks_ms(), self.last_interrupt_time)
+        duration = ticks_diff(ticks_us(), self.last_interrupt_time)
         # on the rising edge set the low pulse duration
-        if self.pin.value():
-            # if first pair is currently valid write the second
-            if self.take_1:
-                self.low_pulse_2 = duration
-            else:
-                self.low_pulse_1 = duration
+        if pin.value():
+            self.low_pulse = duration
             # one high + low pulse duration pair are valid together, so switch output to the new valid pair
-            self.take_1 = not self.take_1
+            self.pulses_changed = True
         # on the falling edge set the high pulse duration
         else:
-            # if first pair is currently valid write the second
-            if self.take_1:
-                self.high_pulse_2 = duration
-            else:
-                self.high_pulse_1 = duration
+            self.high_pulse = duration
         # reset the time since last interrupt
-        self.last_interrupt_time = ticks_ms()
+        self.last_interrupt_time = ticks_us()
 
     """
     utility function for later use which converts the pulse lengths into a co2 concentration in ppm

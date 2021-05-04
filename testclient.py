@@ -6,7 +6,7 @@ def run():
     client = Client('192.168.2.177', 8090)
     # client = Client('127.0.0.1', 8090)
 
-    client.request_data('rotary_encoder', 50)
+    client.request_data('co2', 0)
 
     while True:
         data = client.receive_data()
