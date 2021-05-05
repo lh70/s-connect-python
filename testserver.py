@@ -14,6 +14,7 @@ from lh_lib.sensors.esp32.gyro import Gyro
 from lh_lib.sensors.esp32.ultrasonic import Ultrasonic
 from lh_lib.sensors.esp32.rotary_encoder import RotaryEncoder
 from lh_lib.sensors.esp32.co2 import CO2
+from lh_lib.sensors.esp32.button import Button
 
 alloc_emergency_exception_buf(100)
 
@@ -29,8 +30,9 @@ def run():
     ultrasonic_sensor = Ultrasonic(25, 33)
     rotary_encoder_sensor = RotaryEncoder(34, 26)
     co2_sensor = CO2(27)
+    button_sensor = Button(14)
 
-    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, gyro_sensor, ultrasonic_sensor, rotary_encoder_sensor, co2_sensor)
+    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, gyro_sensor, ultrasonic_sensor, rotary_encoder_sensor, co2_sensor, button_sensor)
 
     server = Server(8090, sensor_manager)
 
