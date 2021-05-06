@@ -4,115 +4,120 @@ Dies wird das Software Archiv für meine Bachelor Arbeit.
 ## Author
 Lukas Holst - lukas.holst@stud.tu-darmstadt.de
 
-## Ziel
-Es soll die Optimierung der Verarbeitung von dezentral verarbeiteten kontinuierlichen Daten getestet werden.
+## Goal
+This project will test the optimisation of decentralized generation and processing of continuous data.
 
-BISHERIGE beobachtbare Größen und Optimierungsmöglichkeiten: Rechenpower, Verteilungsgrad, Netzwerk/Verbindungsverzögerung
+My gathered watchable variables are currently: processing-power, decentralization, network delay
 
-## Ideen
-Dies wird ein Framework das auf Python und MicroPython basiert. 
+## Idea
+This Framework will be made to work on Python and MicroPython.
 
-Es soll einen zentral erstellten Rechenablauf dezentralisiert Verteilen können.
+The idea is to have a central control unit where a processing sequence is defined.
+This will then be executed decentralized on a network of computers.
 
-Anwendungszweck des Frameworks wird das Generieren/Auslesen von Sensordaten von Mikrocontrollern wie der ESP8266 oder
-der ESP32 Plattform und das Auswerten dieser Sensordaten über verteilte Rechnersysteme.
+The actual use-case will be the generation and further processing of sensory data.
+For this I will use the ESP32 platform, but in theory the framework should work on any MicroPython ready platform.
+To open up the further processing to more platforms the framework (except the sensor-data gathering) will be 
+fully CPython compliant.
 
-Die Ziel/Endpunkte, sowie die beispielhafte Datenverarbeitung sind noch NICHT definiert.
+The final destinations of this processing are not yet defined.
 
-### Die Sensoren
-Erste Idee: an einem Mikrocontroller können Sensoren angeschlossen werden. 
-Diese können von diesem Mikrocontroller kontinuierlich abgefragt werden.
-Diese Daten können von dem Mikrocontroller dann als Datenstrom bereitgestellt werden.
+### The Sensors
+First idea: we can connect multiple sensors to one microcontroller.
+These sensors can then be continuously read by the microcontroller.
+This data can then be continuously fed as a data-stream to other computers.
 
-Zweite Idee: die Mikrocontroller können als Rechenpower genutzt werden. 
+Second idea: the microcontrollers can also be used as computing power.
 
-Dadurch entstehen zwei Möglichkeiten: 
-* Ein Mikrocontroller ist für einen oder mehrere Sensoren zuständig und 
-liefert diese Daten so schnell wie möglich an die nächste Instanz und verbraucht dadurch seine komplette Rechenpower.
-* Ein Mikrocontroller ist für einen oder mehrere Sensoren zuständig und
-liefert vorgefilterte/verarbeitete Daten an die nächste Instanz weiter.
-Dadurch nimmt die Sensor-Abfragegeschwindigkeit entsprechend ab, 
-aber der Mikrocontroller selber wird teil des Rechenpower-Netzwerks an welches die Verarbeitung verteilt wird.
+We therefore get two possible scenarios:
+* One microcontroller has one or more sensors connected to it and delivers
+as much sensory data as possible as fast as possible to the next computing instance.
+* One microcontroller has one or more sensors connected to it and delivers
+filtered/computed data to the next instance. This can reduce the polling speed but can also reduce network load.
 
-Punkt zwei inkludiert die Möglichkeit eins und ist daher aus Test- Mehrwertsicht klar zu Bevorzugen, 
-aber es erhöht den Grad an Komplexität, da das Framework auf mindestens zwei Sprachen lauffähig sein muss.
-Durch die Wahl von MicroPython kann dieser Aufwand reduziert werden, 
-da Code für beide Sprachen lauffähig geschrieben werden kann wenn einige Unterschiede beachtet werden.
+When reviewing scenario two we can see that the microcontroller will be part of the computing network and
+therefore open up the possibility for more and variable testing. It will come at the cost of complexity,
+as the framework must be fully micropython compliant. The advantage after will be the uniform framework,
+where every device can do everything (except sensor polling of course). 
+The final advantage which will diminish the argument of design overhead is that scenario one can be fully tested when
+using a scenario two compliant framework.
 
-### Die Kommunikation
-Die Kommunikation kann in zwei generelle Bereiche unterteilt werden. 
+I will therefore go with scenario two.
 
-Einerseits muss die Verteilung des Rechenablaufs und alle Fähigkeiten des Frameworks, die Endgeräte betreffend, möglich sein.
-Alle Endgeräte werden über das Netzwerk verbunden. Dadurch kann hier generell auf ein Netzwerkfähiges Protokoll gesetzt werden.
+### The Communication
+The communication will be divided into two different areas of interest.
 
-Die zweite nötige Kommunikation betrifft das Weiterleiten der Ergebnisse in der verteilten Verarbeitung.
-Im Hinblick auf das dynamische Verteilen von Ressourcen und somit Rechenaufgaben und die eventuelle Möglichkeit 
-die Verarbeitung auf die Mikrocontroller zu Verschieben ist hier auf eine Kommunikation zu setzen, 
-welche Netzwerkfähig ist, aber auch Kommunikation innerhalb eines Gerätes ermöglicht,
-ohne den Umweg über das Netzwerk gehen zu müssen.
-Die Logik muss hier auf Frameworkeben erfolgen und verschiedene Möglichkeiten zur Verfügung stellen.
+On the one side the decentralization of processing requires a control and feedback communication that reaches all
+devices. Because we look at this from a device standpoint, the protocol can be network based.
 
-### Die Verarbeitung
-Durch die Wahl von Python ergibt sich unter anderem das Performanceproblem, 
-dass pro Endgerät erstmal nur ein Prozess und damit nur ein Prozessor-Thread genutzt wird.
+The other side of communication is the transfer of sensory and computed sensory data throughout the network.
+Because it will be possible to have multiple computing steps on a single device we must pursue a solution that works 
+on networks and on the devices itself. The control and data delivery logic for this must be done on the 
+framework layer and must at least support the two discussed scenarios.
 
-Ein Prozess muss mehrere Verarbeitungsschritte durchführen können und die Kommunikation der Zwischenergebnisse
-muss dementsprechend auch innerhalb eines Prozesses möglich sein.
+### The Processing
+With the choice of Python we get at least one performance problem,
+because every device will just use one logical processing thread.
 
-Um das Auslastungsproblem anzugehen gibt es folgende Möglichkeiten:
+One requirement I defined earlier was that one device must possibly do multiple processing steps and therefore
+the sensory data flow must also happen inside individual devices.
 
-* Hier könnte die Möglichkeit genutzt werden, einen Prozess als ein Endgerät zu betrachten
-und somit Prozesse in Anzahl der logischen Prozssorkerne zu wählen. 
-Dadurch ergigt sich der Vorteil das die Netzwerkommunikation hier zwischen den Prozessen verwendet werden kann.
-Zusätzlich kann der Verteilungsmechanismus auf einen Anwendungsfall beschränkt werden,
-da ein Endgerät immer aus einem Prozess besteht.
+There are two possible solutions to use more than one processing thread
+* The first solution is to consider one processing thread as one device. In this scenario we can run as many processes
+as we like on one device to get full processor utilization. We can also reuse the network communication, as it is same
+to communicate between devices as it is to communicate between processes. One downfall of this solution is that
+network communication adds an overhead to the inter-process communication. Thankfully when using the localhost address
+network cards nowadays skip a few layers of the networking protocol, which adds to the performance.
+* The second solution would be the multiprocessing capabilities of CPython. It is possible to spawn multiple 
+sub-processes with one main process and communicate between them using queues. This is faster than using network 
+communication, but it comes at the cost of an additional protocol and additional control logic.
 
-* Die andere Möglichkeit wäre das ein Endgerät einen Python Prozess mit mehreren Sub-Prozessen haben kann.
-Generell kann hier dann immer noch komplett die Netzwerkkommunikationsmöglichkeit aus dem ersten Vorschlag übernommen werden.
-Andererseits kann dann auch die Interprozess-Kommunikation von Python genutzt werden. Die würde die Effizienz erhöhen,
-aber auch die Komplexität, da beide Kommunikationen auch auf Python-Interprozess-Ebene umgesetzt werden müssen.
+The final decision is to use the first solution. The added complexity of using sub-processes does outweigh the
+performance gains from the second solution. Additionally, as we use socket communication and socket communication is 
+standardized in python we can maybe also use unix sockets instead of the localhost address when using the framework on
+linux. This will be as fast as interprocess communication can be with subprocesses and queues.
 
-Hier ist noch KEINE Entscheidung gefallen.
+### The Framework
+The Framework is a program that must run on CPython and MicroPython.
+The general task of this framework is to divide a processing sequence and deploy it on a pool of processing resources.
 
-### Das Framework
-Das Framework ist ein Programm, welches auf Python und Micropython läuft.
-Die Aufgabe des Frameworks ist es einen Verarbeitungsprozess auf vorhandene Rechner-Ressourcen aufzuteilen.
+For this we need at least the following entities:
+* One controller process, which knows the complete processing sequence and all processing resources.
+This process will do the controlling and division of work for workers and sensors.
+* Worker processes, which will get assigned parts of the processing sequence.
+* Sensor processes, which deliver unfiltered sensor data. As discussed earlier the sensor processes can also do 
+processing and are therefore also worker processes
 
-Dazu sind mindestens die folgenden Entitäten nötig: 
+For this construct to work, the controller must be reachable from all endpoints and vice versa.
+This results in that all processes must be run in one network environment.
 
-* Ein Controller Prozess, welcher den eigentlichen Verarbeitungsprozess kennt, sowie alle anderen beteiligten Entitäten
-und Steuerung der Arbeiter und Sensoren übernimmt.
-* Worker, welche Teile des Verarbeitungsprozesses zugewiesen bekommen können.
-* Sensoren, welche ungefiltert Daten der Sensoren liefern.
+### Proposal: Domains:
+In a real network there are restrictions and private areas, which results in devices being not reachable for everyone.
+To adequately represent this in this framework I propose the use of domains. One domain is a group of devices, which
+can reach each other. This reachability is bi-directional. A gateway can therefore be for example designed by having
+two distinct domains, where each domain has one device that is in a gateway domain.
 
-Diese Art der Steuerung setzt voraus das der Controller von jedem Endgerät erreichbar ist und
-somit alle Endgeräte in einem Netzwerk sind.
+Another possibility is uni-directional reachability. This could be achieved by connecting domains, where one can
+explicitly set two domains as connected and must specify the direction.
 
-### Vorschlag Domänen: 
-In einem realen Netz gibt es abgeschottete Bereiche, welche nicht von allen Geräten erreichbar sind.
-Um dies in diesem Framework darzustellen würde ich den Begriff der Domänen einführen. 
-Eine Domäne stellt eine Gruppe an Endgeräten dar, welche direkt miteinander kommunizieren können. 
-Wenn nun Worker und Sensoren miteinander oder der Controller mit den Workern und Sensoren kommunizieren soll, 
-dann kann dies unter Umständen nicht direkt passieren.
+These theoretical conditions require special care by the framework.
+Besides, the own framework communication a worker must also support the forwarding of control communication.
+Furthermore, the controller process must support these domains and intelligently place processing. This also requires
+a pass-through processing, where the controller can assign a process to just do gateway work.
 
-Deshalb muss ein Worker auch die Weiterleitung sowohl von Steuerkommunikation als auch von Verarbeitungskommunikation
-unterstützen.
+Another thing to consider is that the controller must know all devices, and their reachability to adequately distribute
+work. The easiest solution is to define the network on the controller in advance.
 
-Weiterhin reicht es nicht mehr das ein Endgerät sich bei dem Controller anmeldet, 
-da dieser unter Umständen nicht direkt erreichbar ist. 
-Vielmehr ist man hier gezwungen von der Controllerseite aus zu agieren und hier alle Endgeräte im vorhinein zu definieren,
-damit mögliche Routen an die Endgeräte mitgeteilt werden können.
-
-Zusätzlich wird die Fehlerbehebung anspruchsvoller, da ausgefallene Geräte einen zentralen Knotenpunkt darstellen können
-und somit unter Umständen keine ausweichende Verarbeitung möglich ist, aber dies stellt auch einen experimentellen Mehrwert dar.
+The last challenge that arises from this proposal is the troubleshooting, because if the wrong device fails, a whole
+network area my not be reachable anymore. Although this requires for a much more robust framework this also provides
+an additional experimental value.
 
 ## Setup
-Hier wird laufend aktualisiert wie das Projekt aufgesetzt ist.
+This will be held up to date to show how the project is set up.
 
 Repository: GitLab RWTH-Aachen: https://git.rwth-aachen.de/lukas.holst/bachelor-thesis
 
-Lokale Entwicklungs-Umgebung: PyCharm Community + MicroPython Plugin
-
+Local Development Environment: PyCharm Community + MicroPython Plugin
 
 ## Umsetzung
 ### Version 1 - Überblick
