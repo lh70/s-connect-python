@@ -1,5 +1,5 @@
 # Bachelor Thesis
-Dies wird das Software Archiv für meine Bachelor Arbeit.
+This is the software archive for my bachelor thesis.
 
 ## Author
 Lukas Holst - lukas.holst@stud.tu-darmstadt.de
@@ -119,46 +119,60 @@ Repository: GitLab RWTH-Aachen: https://git.rwth-aachen.de/lukas.holst/bachelor-
 
 Local Development Environment: PyCharm Community + MicroPython Plugin
 
-## Umsetzung
-### Version 1 - Überblick
-Die Umsetzung erfolgt mit MicroPython
+## Implementation
+### Version 1 - Overview
+MicroPython and CPython wil be supported.
+Sensors can only be used/imported with MicroPython.
 
-Es wird der WIFI-fähige Mikrocontroller ESP-32-WROOM-32(D) verwendet.
+The wifi-capable ESP-32-WROOM-32(D) will be used as the microcontroller for sensory readouts.
 
-Es wird das später definierte TCP-Protokoll zur Kommunikation verwendet.
+TCP sockets will be used for communication.
 
-Folgende Sensoren werden (erstmal) unterstützt:
-* Sensor (Anschluss)
-* Temperatur (Intern) !!!Eventuell auf den Testboards nicht vorhanden!!!
-* Capacitive Touch (Intern - Micropython Standard Library) 
-!!!Wird (erstmal) nicht implementiert, da selbst gebastelte kapazitive Touch-Sensoren nötig wären!!!
-* Hall Sensor (Intern - Micropython Standard Library)
-* Potentiometer (Extern - Analog - 1 Pin)
-* Gyro Sensor (Extern - I2C) https://elektro.turanis.de/html/prj075/index.html
-* Temperatur + Feuchtigkeit (Extern - Micropython Standard Library) https://github.com/adidax/dht11
-* Ultraschall Sensor (Extern - Digital - 2 Pin - Trigger / Echo) https://create.arduino.cc/projecthub/abdularbi17/ultrasonic-sensor-hc-sr04-with-arduino-tutorial-327ff6
-* CO2 Sensor (Extern - Digital - 1 Pin) https://funduino.de/nr-51-co2-messung-mit-arduino-co2-ampel
-* Capacitive Touch (Extern - Digital - 1 Pin)
-* (Incremental) Rotary Encoder (Extern - Digital - 2 Pin) https://github.com/peterhinch/micropython-samples/blob/master/encoders/encoder_portable.py
+The following sensors will be supported:
+* Sensor (Connectivity)
+* Temperature (internal) !not supported on every board! -> on my boards it is supported
+* (Capacitive Touch (internal+external) !special hardware setup required! -> will not be implemented)
+* Hall Sensor (internal - MicroPython standard library)
+* Potentiometer (external - analog - 1 pin)
+* Gyroscope Sensor (external - digital - I2C)
+* Temperature + Humidity (external - digital - MicroPython standard library)
+* Ultrasonic Sensor (external - digital - 2 pin - special protocol (Trigger/Echo))
+* CO2 Sensor (external - digital - 1 pin - PWM (slow -> using interrupts))
+* Capacitive Touch (external - digital - 1 pin (like a button))
+* Incremental Rotary Encoder (external - digital - 2 pin - special protocol)
+
+Inspiration for the implementations are partially taken from the following tutorials:
+* https://elektro.turanis.de/html/prj075/index.html
+* https://create.arduino.cc/projecthub/abdularbi17/ultrasonic-sensor-hc-sr04-with-arduino-tutorial-327ff6
+* https://funduino.de/nr-51-co2-messung-mit-arduino-co2-ampel
+
+For the implementation of the gyroscope, ultrasonic and co2 sensor readout I also used the following datasheets:
+* https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf
+* https://cdn.sparkfun.com/datasheets/Sensors/Proximity/HCSR04.pdf
+* https://www.winsen-sensor.com/d/files/infrared-gas-sensor/mh-z19b-co2-ver1_0.pdf
 
 #### MicroPython https://micropython.org
-Wie auf der Webseite von MicroPython gut beschrieben steht ist MicroPython eine Python Implementation für Mikrocontroller.
-Dabei ist ein kleiner Teil der Python 3 Standard Library (CPython) mit kleineren aber genau beschriebenen Abänderungen vorhanden.
-Dies ermöglicht es CPython und Mikropython kompatiblen Code zu schreiben.
-Um MicroPython zum laufen zu bekommen muss die Sprache und damit der Interpreter auf dem Mikrocontroller installiert werden.
-Es wird dann ein Interface zur Verfügung gestellt um mit der Installation zu interagieren. 
-Diese ist an der normalen Python Interpreter Shell orientiert, 
-bietet aber zusätzlich unter Anderem die Möglichkeit Programme an den Mikrocontroller zu überspielen und auszuführen.
+Like described on their website, MicroPython is a Python implementation for microcontrollers that implements a subset
+of the Python 3 standard library with minor differences which are well described. This allows one to write CPython and
+MicroPython compatible code.
+
+To get MicroPython up and running on a microcontroller the MicroPython firmware needs to be deployed on it. The
+MicroPython documentation provides instructions on how to install the firmware, as well as interacting with it.
+For example: it is possible to use the MicroPython installation like a Python-Shell, move files onto the 
+microcontroller and run python scripts directly on the microcontroller.
 
 #### Framework - MicroPython - Version 1
-Grundsätzlich wird das Framework Python und MikroPython kompatibel entworfen. 
-Dies soll im späteren Verlauf ermöglichen das das Framework auf allen Endgeräten gleiche Funktionalität bereitstellt.
+The framework will be CPython and MicroPython compatible.
+All devices will in the end have the same functionality except the sensory readouts.
 
-Die erste Priorität wird aber sein die Sensordaten auf den Mikrocontrollern auslesen zu können und über das Netzwerk an
-ein Endgerät zu schicken welches sich mit dem Mikrocontroller verbindet.
+The first priority will be to read the sensor data and send it over the network to another device, wich requests
+this data from the microcontroller.
 
-Dazu werden die folgenden Komponenten zuerst entwickelt: Die Python-Repräsentation der Sensoren, 
-die Python-Repräsentation der Daten, das Netzwerkkommunikationsmodel, ein einfacher Testclient und Testserver.
+For this I will first develop the following components:
+* The python representation for the sensors
+* The python representation for the sensor data
+* The network communication protocol
+* An easy testclient and testserver
 
 #### Python-Repräsentation der Sensoren
 Die Sensoren haben ein eigenes Modul namens sensors. Dieses Modul besitzt Sub-Module mit dem Namen der unterstützten Boards,
