@@ -10,13 +10,16 @@ class AbstractSensor:
      -> to be updated by the sensor which must implement an update() method
     """
     def __init__(self):
-        self.leases = 0
         self.value = None
 
     """
-    Returns the most recently updated sensor value
-    
-    General convention to use a method rather than to expose the value directly
+    can be used by the sensor to register interrupt handlers
     """
-    def get(self):
-        return self.value
+    def start_irq(self):
+        pass
+
+    """
+    this method has to be implemented when a sensor implements start_irq() to remove the interrupt handlers
+    """
+    def stop_irq(self):
+        pass

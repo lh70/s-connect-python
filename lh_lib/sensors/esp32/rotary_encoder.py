@@ -24,11 +24,14 @@ class RotaryEncoder(AbstractSensor):
         self.dt_pin = Pin(dt_pin, Pin.IN)
         self.scale = scale
         self._pos = 0
-        self.clk_interrupt = self.clk_pin.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.clk_callback)
-        self.dt_interrupt = self.dt_pin.irq(trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING, handler=self.dt_callback)
 
         self.val_old_clk_pin = self.clk_pin.value()
         self.val_old_dt_pin = self.dt_pin.value()
+
+        # start_irq and stop_irq not used here, as this messes with state,
+        # where changes in rotation are only measured if sensor is gets watched
+        self.clk_pin.irq(handler=self.clk_callback, trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING)
+        self.dt_pin.irq(handler=self.dt_callback, trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING)
 
     """
     updates the readout value according to scale. Cuts value to integer, because we want to output whole ticks.

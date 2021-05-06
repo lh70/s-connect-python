@@ -21,9 +21,9 @@ class CO2(AbstractSensor):
         self.high_pulse = 0
         self.low_pulse = 0
         self.pulses_changed = False
+        self.irq_fresh_start = True
 
         self.last_interrupt_time = ticks_us()
-        self.pin.irq(handler=self._interrupt, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING)
 
     """
     if new pulse values available sets the sensors value to the set(high_pulse, low_pulse, computed_concentration)
@@ -37,6 +37,19 @@ class CO2(AbstractSensor):
             self.value = None
 
     """
+    registers the interrupt handler used to calculate the co2 concentration
+    """
+    def start_irq(self):
+        self.irq_fresh_start = True
+        self.pin.irq(handler=self._interrupt, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING)
+
+    """
+    removes the interrupt handler
+    """
+    def stop_irq(self):
+        self.pin.irq(handler=None, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING)
+
+    """
     interrupt handler which sets the pulse durations
     """
     def _interrupt(self, pin):
@@ -46,10 +59,15 @@ class CO2(AbstractSensor):
         if pin.value():
             self.low_pulse = duration
             # one high + low pulse duration pair are valid together, so switch output to the new valid pair
-            self.pulses_changed = True
+            # ignore second measurement if there is no valid first measurement
+            if not self.irq_fresh_start:
+                self.pulses_changed = True
         # on the falling edge set the high pulse duration
         else:
             self.high_pulse = duration
+            # set true to indicate a valid first measurement
+            if self.irq_fresh_start:
+                self.irq_fresh_start = False
         # reset the time since last interrupt
         self.last_interrupt_time = ticks_us()
 
