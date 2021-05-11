@@ -174,137 +174,110 @@ For this I will first develop the following components:
 * The network communication protocol
 * An easy testclient and testserver
 
-#### Python-Repräsentation der Sensoren
-Die Sensoren haben ein eigenes Modul namens sensors. Dieses Modul besitzt Sub-Module mit dem Namen der unterstützten Boards,
-worin dann die Implementationen der Sensoren liegen.
+#### The Python Representation For The Sensors
+All sensors will be reachable through a sensor module. This module has submodules for each supported hardware platform.
+this is currently only esp32. In these submodules every sensor will have a standardised submodule with one class in it.
 
-Aufgrund des knappen Speichers auf Mikrocontrollern wird jeder Sensor ein eigenes Sub-Modul bekommen,
-welches eine Klasse enthält, die die Sensorfunktionalität bereitstellt. 
+The sensors are separated to keep memory usage low, because in most use cases not all sensors will be used at once.
 
-Das Sub-Modul und die Klasse bekommen den gleichen Namen, nach Python Konvention.
-(Modul startet klein, Klasse startet groß)
+Both the sensor file/module and class will get the same name with respect to the python convention.
+(modules start lower case and classes start upper case)
 
-Dadurch wird verhindert das ein Mikrocontroller alle Sensor-Klassen in einem Modul importiert, 
-obwohl meistens nur eine Sensorklasse verwendet wird.
+Each sensor class holds a current value as public attribute, which can be of any serializable type. Each sensor also
+implements an update method which will be called before the current value is used by the framework. That means a sensor
+has to set value fast during his update call for the current iteration.
 
-Jede Sensorklasse stellt einen indiviudellen Konstruktor und eine universelle get() Methode bereit. 
-Über diese Methode wird ein aktueller Sensorwert ausgelesen und zurückgegeben. 
-Für die meisten Sensoren sollte dies ausreichend sein, da der Auslesevorgang sehr in wenigen Mikrosekunden stattfindet.
-Auch I2C wird in diesem Zusammenhang als schnell genug angesehen, vorallem da eine Lösung mit Interrupts, 
-wie im folgenden Beschrieben mit I2C nicht möglich ist.
+In the current selection of sensors there are three update lengths for these sensors. The first kind takes nearly no
+time (a few microseconds), as the update method only has to read current pin states. The second kind takes longer
+because some serial logic is required to read the sensor data. This can take up to a few milliseconds and is the
+slowest acceptable synchronous update method. This could already be done with interrupts, but the complicated logic 
+required is not feasible to implement at the moment. The last kind takes longer than 10 milliseconds. A good example
+for this would be the co2 sensor and its pwm output, which has a period length of 1004 milliseconds. For these sensors
+interrupts are a feasible solution. Their logic is often not complicated but slow, so the interrupt handlers take care
+of interpreting the current state and if there is a new correct state, the update method can take this state and write
+i into the value attribute.
 
-Es gibt allerdings Sensoren mit langen und/oder variablen Antwortzeiten. 
-Dies betrifft zum Beispiel den CO2 Sensor.
-Bei diesem Sensor kann davon ausgegangen werden das die Antwortzeit 'länger' dauert und 
-eine synchrone Abfrage den Mikrocontroller zu stark ausbremsen würde.
-Deshalb wird hier auf Hardware-Interrupts zurückgegriffen.
-Diese werden mit dem Initialisieren der Klasse aktiviert und sorgen für eine korrekte Abfrage der Sensorwerte. 
-Der aktuelle Sensorwert wird in eine atomare Variable gespeichert.
+To respect invalid value attribute states the framework will not process the value attribute if its value is exactly 
+None.
 
-Hier muss geschaut werden welche Größen nötig sind. Integer, Byte, Boolean und Arrays dieser sind möglich.
-Jedoch dürfen Integer die Größen 2\*\*30 -1 und -2\*\*30 nicht überschreiten, 
-da Python größere Integer (Long Integer) zwar unterstützt, aber für diese eine Objekt-Repräsentation wählt und 
-die Objekt-Allokation ist in Hardware-Interrupts deaktiviert.
+To save performance a sensor that uses interrupts must implement the start_irq() and stop_irq() methods. On start irq
+the sensor is allowed to set appropriate irq handlers on its pin handles. On stop irq the sensor must overwrite all
+irq handlers with None. (Call the exact same irq methods as on start_irq() with the exact same arguments, but None as
+the handler method)
 
-Grundsätzlich ist es möglich micropython.schedule() zu verwenden, was einen Software-Interrupt darstellt, 
-welcher dann jeden Python-Code ausführen kann, jedoch gibt es zwei Gründe dagegen: 
-* Erstens, den aktuellen Wert zu bestimmen und in eine vor-allokierte Variable zu speichern
-ist eine einfache Aufgabe die ohne Objekt-Allokation zu machen sein sollte.
-* Zweitens, Software-Interrupts haben keine zeitliche Garantie, 
-sodass die oft zeitlich kritische Abfrage und Berechnung der Sensorwerte ungenau wird.
+There is one important aspect to interrupts, which is object allocation. This is not allowed in hardware interrupts.
+As we want to be as performant as possible sensor should use hardware interrupts if possible. This results in some
+precautions that must be taken when writing interrupt handlers. For example integers are not allowed to get bigger
+than 2\*\*30 -1 and -2\*\*30 because then they will be converted to objects and not be atomar values anymore.
+If this happens inside an interrupt handler it will crash. We could use micropython.schedule(), but we need exact timing
+and micropython.schedule() cannot guarantee this. We also do have a fast and regular call to sensor.update(), so we can
+do any delayed computation there.
 
-Die eigentliche Aufgabe von Software-Interrupts ist die nachträgliche Verarbeitung von mit Hardware-Interrupts aggregierten Sensorwerten.
-Da dies aber in diesem Framework von der Main-Loop übernommen wird kann komplett auf Software-Interrupts verzichtet werden.
+#### The Python Representation For The Sensor Data
+After each computational step I need the data to be json-serializable because at any step it can reach a network gate,
+at which values will be aggregated and send over the network in JSON arrays. With this requirement the data returned
+from each step/method and sensor must be json-serializable. Because python supports dynamic typing it is very easy for
+us to support a wide variety of data types with only one requirement, but this also means that the individual steps
+must be smarter, or the selection of steps must be smarter according to the input type. But this will be the task
+of future versions.
 
-Sensoren mit Hardware-Interrupts liefern also mit ihrer get() Methode den aktuellsten Wert zurück, 
-der durch den letzten Interrupt-Handler geschrieben wurde.
+#### The Network Communication Protocol
+Used modules:
+* standard (MicroPython standard): socket (usocket), struct (usocket), json (ujson)
 
-#### Python-Repräsentation der Daten
-Damit die Sensor-Werte auch weiterverarbeitet werden können müssen sie in ein universelles Format gebracht werden.
-In dem Netzwerkabschnitt wird die Daten-Repräsentation in Form eines JSON Arrays gewählt. 
-In der nächsten Version des Frameworks soll jedoch auch die Verarbeitung intern erfolgen können und somit muss eine
-Repräsentation gewählt werden, welche für die Methodenübergänge möglichst effizient ist.
+Used modules for encryption (maybe later):
+* standard (MicroPython standard): ssl (ussl)
 
-An dieser Stelle wird für die zweite Version des Frameworks schon vorgegriffen. 
-Das Ziel wird es sein Verarbeitungsschritte beliebig hintereinander zu hängen und 
-eigentlich soll jeder Wert die komplette Verarbeitungskette einzeln durchlaufen. 
-Somit sollen lokal alle Schritte direkt aneinander gehängt werden, 
-aber verteilte Rechner haben das Problem das das Netzwerk keine Garantie liefert, wann gesendeter Wert ankommt.
-Deshalb werden hier die in der Netzwerkkommunikation beschriebenen zeitlichen Datenframes verwendet.
-
-Die Kontrolle darüber wann auf das Netzwerk verteilt wird und welche Zeit-Frames gewählt werden wird Aufgabe 
-des zukünftigen Kontrollers werden.
-
-Für die aktuelle Version ist es also ausreichend wenn die einzelnen Werte als Methoden-Rückgabe/-Eingabe weiterverarbeitet werden können.
-Durch das dynamische Typensystem in Python ist dies ohne Probleme möglich. 
-
-Am Ende der lokalen Kette steht dann eine Klasse welche beliebige (serialisierbare) Eingabe-Werte/-Objekte in Time-Frames aggregiert
-und diese and das Netzwerk-Modul weitergibt.
-
-#### Das Netzwerkkommunikationsmodel
-Verwendete Module: 
-* Standard (MikroPython Standard): socket (usocket), struct (usocket), json (ujson)
+The Stack:
+* TCP socket connection
+* (TLS socket wrapper) (maybe later)
+* Each message consists of length + data. The length part has the struct format '!I', which is an unsigned integer, 
+  big-endian.
+* The data part is a UTF-8 encoded string
+* The string is either a JSON-object or a JSON-array
+    * A JSON-object is a control message
+    * A JSON-array is a data message
+    
+The Handshake:
+* The client starts the connection
+* With encryption:
+    * client and server try to elevate their socket to TLS
+      (currently this is not implemented and used because esp32 MicroPython does not validate certificates)
+* The client sends a JSON-object with a sensor request
+* The server sends back JSON-arrays with the sensor data until the socket gets closed down
 
 
-Verwendete Module für symmetrische Verschlüsselung (nur eventuell):
-* Python: 
-    * Standard: cryptography.fernet
-* Mikropython:
-    * Standard: ucryptolib.aes, ubinascii, uhashlib, utime, uos, ustruct
-    * Selbst implementiert: Fernet nach https://github.com/oz123/python-fernet/blob/master/fernet.py mit den Standard Libraries
-
-Verwendete Module für asymmetrische Verschlüsselung (nur eventuell):
-TODO
-
-Rssourcen:
-* https://hwwong168.wordpress.com/2019/09/25/esp32-micropython-implementation-of-cryptographic/
-* https://pypi.org/project/rsa/
-
-Der Stack:
-* TCP Socket Verbindung
-* Jede Nachricht besteht aus Länge + Nutzdaten. Die Länge hat das struct Format '!I', also ein unsigned Integer in big-endian.
-* (eventuell) Die Nutzdaten sind symmetrisch verschlüsselt mit AES
-* Die Nutzdaten sind ein UTF-8 kodierter String.
-* Der String enthält ein JSON-Object oder einen JSON-Array
-    * Handelt es sich um ein JSON-Object ist dies eine Steuernachricht
-    * Handelt es sich um einen JSON-Array ist dies eine Datennachricht
-
-Der Handshake:
-* Initial mit Verschlüsselung:
-    * der Client startet die Verbindung
-    * der Client schickt einen timestamp und ID signiert mit seinem Public Key an den Server
-    * der Server überprüft die Signatur und schickt einen symmetrischen Schlüssel verschlüsselt mit dem Public Key an den Client
-    * der Client und der Server initialisiern Fernet und kommunizieren ab jetzt nur noch verschlüsselt
-* der client schickt ein JSON-Object mit einer Sensor Datenanfrage
-* der server liefert JSON-Arrays mit den Daten bis der Socket geschlossen wird
-
-Das JSON-Object:
-* Die Steuerbefehle sollen menschenlesbar sein. Somit sind hier die Geschwindigkeit und Bandbreitensparsamkeit nicht entscheidend.
-Dies ergibt sich auch dadurch das der effiziente Teil der Kommunikation auf die JSON-Arrays mit den Rechendaten geschoben wird.
-* Aufbau:
+The JSON-Object:
+* The control messages should be human-readable. The communication speed at this point is not critical. That is why
+I can use a more convenient representation for messages.
+* Structure:
     * (KEY: DATA)
     * data-request: JSON-Object::
         * sensor: "Sensor-Kind" -one-of-> (temperature, touchpad, poti, gyro, dht11)
         * time-frame: "Integer" -> send values every x milliseconds 
             * (0 or key not specified is wildcard for send every value individually -> probably slow)
         * values-per-time-frame: "Integer" -> gather x timely evenly spaced values in a time-frame
-            * (time-frame has precedence over value-count, which means if the timeframe is expired, all gathered values will be send, 
-            even if the value-count is not met) 
+            * (time-frame has precedence over value-count, which means if the timeframe is expired, all gathered values
+              will be send, even if the value-count is not met) 
             * (0 or key not specified is wildcard for send as much values as possible per time-frame)
 
-Der JSON-Array:
-* Hier ist Geschwindigkeit wichtig. Alle Werte eines Timeframes werden in einem Array verschickt. 
-Das bedeutet es dürfen nur primitive oder serialisierbare Datentypen als Ergebnisse versendet werden.
-Als serialisierbar zählen Klassen welche direkt vom json-Modul als serialisierbar erkannt werden. 
-Somit sind die einzig komplexen zugelassenen Datentypen dict und list.
-* Aufbau:
+The JSON-Array:
+* This part is speed-critical, because we want to send as much sensor data as possible. All values that are aggregated
+  in the connection buffer will be packed into one JSON-array and send over the network. That means we have a minimal
+  overhead on the transport, but also the values must be JSON-serializable. That results in dict and list (and tuple) 
+  being the only supported complex data type.
+* Structure:
     * JSON-ARRAY::
         * -list-of-> "Result-Object"
 
 #### Testclient + Testserver
-TODO
+To keep it simple the testclient can request one sensor in a specified manner. The testclient will print all received 
+data until it gets killed. The testserver accepts an infinite number of connection requests and delivers the requested
+sensor data in the format the client wants. The testserver holds an output buffer for each connection started, so there
+can in the future be crashing situation, if too many connections are accepted with a too long time frame, so the buffers
+occupy too much memory.
 
 ### Version 2 - FUTURE
-Serialisieren von Funktionen:
+The serializing of functions:
 * https://medium.com/@emlynoregan/serialising-all-the-functions-in-python-cd880a63b591
 * https://stackoverflow.com/questions/1253528/is-there-an-easy-way-to-pickle-a-python-function-or-otherwise-serialize-its-cod
