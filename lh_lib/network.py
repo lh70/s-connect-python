@@ -1,4 +1,5 @@
-from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownException
+from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
+from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, AcknowledgementException
 
 try:
     import usocket as socket
@@ -24,7 +25,8 @@ except ImportError:
 MAX_UNSIGNED_INT = 4294967295
 # maximum receive network buffer
 MAX_RECEIVE_BYTES = 4096
-
+# acknowledgement timeout
+ACKNOWLEDGEMENT_TIMEOUT_MS = 2000
 
 class Server:
 
@@ -226,4 +228,21 @@ class Transport:
             # this can raise an exception if the received data is not valid json
             return json.loads(msg)
         except ValueError:
-            raise NoReadableDataException()
+            raise InvalidDataException()
+
+    def send_acknowledgement(self):
+        self.send({'ack': 1})
+
+    def recv_acknowledgement(self):
+        timestamp = ticks_ms()
+        while ticks_ms_diff_to_current(timestamp) < ACKNOWLEDGEMENT_TIMEOUT_MS:
+            try:
+                msg = self.recv()
+                assert msg['ack'] == 1
+                return
+            except NoReadableDataException:
+                pass
+            except Exception as e:
+                raise AcknowledgementException("ack failed: {}".format(e))
+
+        raise AcknowledgementException("timeout on receiving acknowledgement")

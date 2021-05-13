@@ -1,6 +1,6 @@
 from micropython import alloc_emergency_exception_buf
 
-from lh_lib.communication import Server
+from v1.communication import Server
 from lh_lib.sensors.manage import SensorManager
 from lh_lib.logging import log
 
@@ -26,13 +26,13 @@ def run():
     touch_sensor = Touch(35)
     temperature_sensor = Temperature()
     dht11_sensor = DHT11(13)
-    gyro_sensor = Gyro()
+    #gyro_sensor = Gyro()
     ultrasonic_sensor = Ultrasonic(25, 33)
     rotary_encoder_sensor = RotaryEncoder(34, 26)
     co2_sensor = CO2(27)
     button_sensor = Button(14)
 
-    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, gyro_sensor, ultrasonic_sensor, rotary_encoder_sensor, co2_sensor, button_sensor)
+    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, ultrasonic_sensor, rotary_encoder_sensor, co2_sensor, button_sensor)
 
     server = Server(8090, sensor_manager)
 

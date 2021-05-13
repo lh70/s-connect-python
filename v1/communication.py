@@ -1,19 +1,8 @@
 import lh_lib.network
 
-from lh_lib.exceptions import CommunicationException
+from lh_lib.exceptions import NoReadableDataException
+from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
 from lh_lib.logging import log
-
-try:
-    import usys as sys
-except ImportError:
-    import sys
-
-try:
-    import utime as time
-except ImportError:
-    import time
-
-RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
 
 
 class Server:
@@ -59,8 +48,6 @@ class Server:
         for connection in self.connections[:]:
             try:
                 connection.update()
-            except CommunicationException as e:
-                connection.send_error(e)
             except lh_lib.network.ConnectionClosedDownException:
                 connection.cleanup()
                 self.connections.remove(connection)
@@ -115,7 +102,7 @@ class ServerConnection:
         # do this last so changed controls affect only the new iteration
         try:
             obj = self.connection.recv()
-        except lh_lib.network.NoReadableDataException:
+        except NoReadableDataException:
             pass
         else:
             if isinstance(obj, dict):
@@ -127,15 +114,9 @@ class ServerConnection:
                     # raises CommunicationException on wrong sensor name
                     self.sensor = self.sensor_manager.get_sensor_lease(obj['sensor'])
                 if 'time-frame' in obj:
-                    try:
-                        self.time_frame = int(obj['time-frame'])
-                    except ValueError as e:
-                        raise CommunicationException('wrong value for time-frame: {}'.format(e))
+                    self.time_frame = int(obj['time-frame'])
                 if 'value-per-time-frame' in obj:
-                    try:
-                        self.values_per_time_frame = int(obj['values-per-time-frame'])
-                    except ValueError as e:
-                        raise CommunicationException('wrong value for values-per-time-frame: {}'.format(e))
+                    self.values_per_time_frame = int(obj['values-per-time-frame'])
             else:
                 # alternative is list -> data message, but server connections do not process these (yet)
                 pass
@@ -151,23 +132,14 @@ class ServerConnection:
         if self.time_frame == 0:
             return len(self.values_to_send) > 0
 
-        if RUNNING_MICROPYTHON:
-            # on MicroPython we take the wrap around ticks which are faster
-            return time.ticks_diff(time.ticks_ms(), self.last_time_frame) >= self.time_frame
-        else:
-            # on CPython we cannot use ticks, but it is assumed fast enough to use time_ns()
-            # time_ns() is converted to milliseconds with rounding using only integer arithmetic
-            return (time.perf_counter_ns() + 500000) // 1000000 - self.last_time_frame >= self.time_frame
+        return ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame
 
     """
     resets the current timeframe in a MicroPython and CPython compatible manner
     to be called after a timeframe has expired
     """
     def _reset_time_frame(self):
-        if RUNNING_MICROPYTHON:
-            self.last_time_frame = time.ticks_ms()
-        else:
-            self.last_time_frame = (time.perf_counter_ns() + 500000) // 1000000
+        self.last_time_frame = ticks_ms()
 
     """
     sends a string serializable object as error message back to the client
@@ -212,5 +184,5 @@ class Client:
     def receive_data(self):
         try:
             return self.connection.recv()
-        except lh_lib.network.NoReadableDataException:
+        except NoReadableDataException:
             pass

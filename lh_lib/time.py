@@ -1,0 +1,27 @@
+try:
+    import usys as sys
+except ImportError:
+    import sys
+
+try:
+    import utime as time
+except ImportError:
+    import time
+
+RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
+
+
+def ticks_ms():
+    if RUNNING_MICROPYTHON:
+        return time.ticks_ms()
+    # on CPython we cannot use ticks, but it is assumed fast enough to use time_ns()
+    # time_ns() is converted to milliseconds with rounding using only integer arithmetic
+    return (time.perf_counter_ns() + 500000) // 1000000
+
+
+def ticks_ms_diff_to_current(old_ticks):
+    if RUNNING_MICROPYTHON:
+        return time.ticks_diff(time.ticks_ms(), old_ticks)
+    # on CPython we cannot use ticks, but it is assumed fast enough to use time_ns()
+    # time_ns() is converted to milliseconds with rounding using only integer arithmetic
+    return (time.perf_counter_ns() + 500000) // 1000000 - old_ticks

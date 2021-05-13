@@ -1,6 +1,6 @@
 
 
-class CommunicationException(Exception):
+class InvalidDataException(Exception):
     pass
 
 
@@ -9,4 +9,16 @@ class NoReadableDataException(Exception):
 
 
 class ConnectionClosedDownException(Exception):
+    pass
+
+
+class ProcessorSetupException(Exception):
+    pass
+
+
+class AcknowledgementException(Exception):
+    pass
+
+
+class CommunicationException(Exception):
     pass
