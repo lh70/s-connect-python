@@ -329,9 +329,9 @@ Currently, pipelines have an input and output buffer this buffer is checked for 
 framework will make a hard cut if the limit is reached. There will be solutions regarding this manner in Version 3.
 
 Currently, only general connection can receive and process control messages and will raise an exception if data messages
-are sent. Currently, I do not see any reason why there should be data messages on general connection. 
+are sent. Currently, I do not see any reason why there should be data messages on general connections. 
 In contrast, pipeline connections can currently only process data messages and will raise an exception if control
-messages are received after promotion from general connection. In the future the will most likely be control messages
+messages are received after promotion from general connection. In the future there will most likely be control messages
 supported for load balancing and automatic adjustments.
 
 TODO: Write the worker (control message) communication structure like done for Version 1
