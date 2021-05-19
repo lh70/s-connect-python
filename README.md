@@ -277,7 +277,61 @@ sensor data in the format the client wants. The testserver holds an output buffe
 can in the future be crashing situation, if too many connections are accepted with a too long time frame, so the buffers
 occupy too much memory.
 
-### Version 2 - FUTURE
-The serializing of functions:
-* https://medium.com/@emlynoregan/serialising-all-the-functions-in-python-cd880a63b591
-* https://stackoverflow.com/questions/1253528/is-there-an-easy-way-to-pickle-a-python-function-or-otherwise-serialize-its-cod
+
+### Version 2
+In Version 2 I want to be able to have clients to a predefined process, where the inputs can be sensor data or other
+clients that process data. This processed data can then be transferred to other clients or printed out. The whole
+process which is scattered over the clients can be assigned and removed by an external client that sends control
+messages.
+
+In Version 1 there were four core elements: the sensor representation, the network layer, the communication layer and
+the testing applications. For Version 2 I will use the sensor representation and network layer from Version 1 while
+rewriting the communication protocol, because it is too limited for the goals of Version 2.
+
+Version 2 therefore adds these new components :
+* Worker
+* Assignment
+* Pipeline
+
+Worker are the main component of this Version. Each Worker identifies with its address, and the port it opens its 
+server on. The workers listen for general connections and when a connection gets opened, control messages can be sent
+to this worker. Each control message will be acknowledged and any errors will result in a connection close.
+The following control messages are supported:
+* Assignment, which includes the information of input pipes, processing tree and output pipes. Processing tree is not
+  yet fully supported and currently it is only possible to link inputs to outputs, thereby allowing for pass-through,
+  but no further processing. Assignments are further discussed in the Assignment section.
+* Assignment Removal, which deletes an assignment, identified with an ID, if it exists
+* Pipeline Request, which includes the assignment id and pipeline id, as well as necessary pipeline attributes. The 
+  worker checks if it has this assignment and if this assignment has not yet opened an output pipeline with this ID, 
+  which should prevent a client from opening the same pipeline twice. Pipelines are further discussed in the pipeline
+  section.
+
+Each worker can theoretically have an unlimited number of assignments. As an assignment spans over multiple workers and
+represents one tree like processing there is currently no need to support multiple assignments, but maybe in the future
+and for testing purposes the need may arise. Currently, an assignment links inputs to outputs, where inputs may be
+pipelines or sensors and the outputs may also be pipelines or print outs. Assignments build from the base up, where
+an assignment may have closed output pipelines, which results in the values being thrown away, but an input pipeline
+must always be open and valid. With this convention it is possible for an external script opening client connections and
+assigning the assignment in a correct and working order.
+
+Pipelines are opened and maintained by the assignments. If a worker receives a pipeline request the current network
+socket gets handed over to the assignment and gets removed from the known general connections of the worker. The
+assignment then promotes the socket to an output pipeline and maintains its state. Input pipelines are opened on
+assignment creation, where the assignment opens a general connection and requests pipelines from other workers.
+Each pipeline has attributes which are taken from the Version 1 sensor request of this framework. There is a time-frame,
+values-per-time-frame and a pipeline-id. The pipeline-id replaces the requested sensor, as the pipeline is now
+assignment specific and can transmit any serializable value, which is determined by the assignment process. The other
+two attributes work as specified in Version 1, with also values-per-time-frame not being implemented, because it is not
+the top priority and fits better in a later development, where load balancing and automated pipeline feedback may play 
+a role.
+
+Currently, pipelines have an input and output buffer this buffer is checked for defined constant maximum size and the
+framework will make a hard cut if the limit is reached. There will be solutions regarding this manner in Version 3.
+
+Currently, only general connection can receive and process control messages and will raise an exception if data messages
+are sent. Currently, I do not see any reason why there should be data messages on general connection. 
+In contrast, pipeline connections can currently only process data messages and will raise an exception if control
+messages are received after promotion from general connection. In the future the will most likely be control messages
+supported for load balancing and automatic adjustments.
+
+TODO: Write the worker (control message) communication structure like done for Version 1
