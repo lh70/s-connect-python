@@ -310,14 +310,14 @@ Each worker can theoretically have an unlimited number of assignments. As an ass
 represents one tree like processing there is currently no need to support multiple assignments, but maybe in the future
 and for testing purposes the need may arise. Currently, an assignment links inputs to outputs, where inputs may be
 pipelines or sensors and the outputs may also be pipelines or print outs. Assignments build from the base up, where
-an assignment may have closed output pipelines, which results in the values being thrown away, but an input pipeline
+an assignment may have closed output pipelines which results in the values being thrown away, but an input pipeline
 must always be open and valid. With this convention it is possible for an external script opening client connections and
 assigning the assignment in a correct and working order.
 
 Pipelines are opened and maintained by the assignments. If a worker receives a pipeline request the current network
 socket gets handed over to the assignment and gets removed from the known general connections of the worker. The
 assignment then promotes the socket to an output pipeline and maintains its state. Input pipelines are opened on
-assignment creation, where the assignment opens a general connection and requests pipelines from other workers.
+assignment creation, where the assignment opens general connections and requests pipelines from other workers.
 Each pipeline has attributes which are taken from the Version 1 sensor request of this framework. There is a time-frame,
 values-per-time-frame and a pipeline-id. The pipeline-id replaces the requested sensor, as the pipeline is now
 assignment specific and can transmit any serializable value, which is determined by the assignment process. The other
