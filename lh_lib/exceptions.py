@@ -12,13 +12,13 @@ class ConnectionClosedDownException(Exception):
     pass
 
 
-class ProcessorSetupException(Exception):
-    pass
-
-
 class AcknowledgementException(Exception):
     pass
 
 
 class CommunicationException(Exception):
+    pass
+
+
+class AssignmentException(Exception):
     pass

@@ -27,6 +27,9 @@ MAX_UNSIGNED_INT = 4294967295
 MAX_RECEIVE_BYTES = 4096
 # acknowledgement timeout
 ACKNOWLEDGEMENT_TIMEOUT_MS = 2000
+# full message receive timeout
+RECEIVE_TIMEOUT_MS = 3000
+
 
 class Server:
 
@@ -139,14 +142,21 @@ class Transport:
             try:
                 bytes_sent = self.socket.send(msg)
             # Windows behaviour??? If other end is forcibly closed it raises an ConnectionResetError -> OSError
-            except OSError:
-                raise ConnectionClosedDownException()
-            # on 0 bytes sent the socket connection is closed
-            if bytes_sent == 0:
-                raise ConnectionClosedDownException()
-            # update the message and length to send
-            msg = msg[bytes_sent:]
-            bytes_to_send -= bytes_sent
+            except OSError as e:
+                if e.args[0] == 11:
+                    # EAGAIN Error was raised, which states "try again",
+                    # but really means that you probably did not call receive on the socket for a long time.
+                    # Do this, even if you do not expect to receive anything.
+                    raise ConnectionClosedDownException("EAGAIN: {} was raised. When was the last time you called receive on this socket?", e)
+                else:
+                    raise ConnectionClosedDownException(e)
+            else:
+                # on 0 bytes sent the socket connection is closed
+                if bytes_sent == 0:
+                    raise ConnectionClosedDownException("0 bytes")
+                # update the message and length to send
+                msg = msg[bytes_sent:]
+                bytes_to_send -= bytes_sent
 
     """
     receives at maximum a given amount of bytes
@@ -185,10 +195,15 @@ class Transport:
         if len(msg) == 0:
             raise NoReadableDataException()
 
+        time_since_last_receive = ticks_ms()
+
         # else we need the message length
         # this can take time as we ignore the mass of empty (not ready) messages we can receive
         while len(msg) < self.length_struct_size:
             msg += self._recv_over_socket(self.length_struct_size - len(msg))
+
+            if ticks_ms_diff_to_current(time_since_last_receive) > RECEIVE_TIMEOUT_MS:
+                raise ConnectionClosedDownException("receive took longer than configured timeout: {} milliseconds".format(RECEIVE_TIMEOUT_MS))
 
         # unpack the length and receive the rest of the message
         # unpack returns always a tuple, which in our case contains only one item
@@ -198,6 +213,9 @@ class Transport:
         msg = self._recv_over_socket(min(length, MAX_RECEIVE_BYTES))
         while len(msg) < length:
             msg += self._recv_over_socket(min(length - len(msg), MAX_RECEIVE_BYTES))
+
+            if ticks_ms_diff_to_current(time_since_last_receive) > RECEIVE_TIMEOUT_MS:
+                raise ConnectionClosedDownException("receive took longer than configured timeout: {} milliseconds".format(RECEIVE_TIMEOUT_MS))
 
         return msg
 
