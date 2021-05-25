@@ -29,13 +29,13 @@ micropython_worker_conn.recv_acknowledgement()
 micropython_worker_conn.send({
     'processing-assignment': {
         'assignment-id': '1',
-        'input-sensors': {
-            's1': {'name': 'rotary_encoder'}
+        'sensors': {
+            's1': {'name': 'co2'}
         },
-        'input-pipes': {},
-        'output-pipe-id-list': ['p1'],
-        'print-pipes': {},
-        'sensor_processing': {
+        'pipelines': {
+            'p1': {'type': 'output'}
+        },
+        'sensor-processing': {
             's1': 'p1'
         },
         'pipeline-processing': {},
@@ -55,13 +55,12 @@ desktop_worker_conn.recv_acknowledgement()
 desktop_worker_conn.send({
     'processing-assignment': {
         'assignment-id': '1',
-        'input-sensors': {},
-        'input-pipes': {
-            'p1': {'host': '192.168.2.177', 'port': 8090, 'time-frame': 100, 'values-per-time-frame': 0}
+        'sensors': {},
+        'pipelines': {
+            'p1': {'type': 'input', 'host': '192.168.2.177', 'port': 8090, 'time-frame': 0, 'values-per-time-frame': 0},
+            'p2': {'type': 'output'}
         },
-        'output-pipe-id-list': ['p2'],
-        'print-pipes': {},
-        'sensor_processing': {},
+        'sensor-processing': {},
         'pipeline-processing': {
             'p1': 'p2'
         },
@@ -81,15 +80,12 @@ desktop_worker_conn.recv_acknowledgement()
 desktop_worker_conn.send({
     'processing-assignment': {
         'assignment-id': '1',
-        'input-sensors': {},
-        'input-pipes': {
-            'p2': {'host': 'localhost', 'port': 8091, 'time-frame': 100, 'values-per-time-frame': 0}
+        'sensors': {},
+        'pipelines': {
+            'p2':     {'type': 'input', 'host': 'localhost', 'port': 8091, 'time-frame': 0, 'values-per-time-frame': 0},
+            'print1': {'type': 'print', 'time-frame': 0, 'values-per-time-frame': 0}
         },
-        'output-pipe-id-list': [],
-        'print-pipes': {
-            'print1': {'time-frame': 100, 'values-per-time-frame': 0}
-        },
-        'sensor_processing': {},
+        'sensor-processing': {},
         'pipeline-processing': {
             'p2': 'print1'
         },

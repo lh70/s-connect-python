@@ -1,6 +1,6 @@
 from lh_lib.network import Client
 from lh_lib.exceptions import AssignmentException
-from lh_lib.pipeline import PipelineConnection, PrintPipeline
+from lh_lib.pipeline import InputPipeline, OutputPipeline, PrintPipeline
 
 
 class GeneralAssignment:
@@ -16,24 +16,17 @@ class GeneralAssignment:
         # k:v -> input-id:output-id
         self.pipeline_processing = setup_obj['pipeline-processing']
         # k:v -> sensor-id:output-id
-        self.sensor_processing = setup_obj['sensor_processing']
+        self.sensor_processing = setup_obj['sensor-processing']
 
         # sensor setup
-        self.sensors = {sensor_id: sensor_manager.get_sensor_lease(sensor['name']) for sensor_id, sensor in setup_obj['input-sensors'].items()}
+        self.sensors = {sensor_id: sensor_manager.get_sensor_lease(sensor['name']) for sensor_id, sensor in setup_obj['sensors'].items()}
 
         # pipeline setup
-        self.possible_output_pipelines = set(setup_obj['output-pipe-id-list'])
-
         self.pipelines = {}
+        for pipe_id, pipe_config in setup_obj['pipelines'].items():
+            self.create_pipeline(pipe_id, pipe_config)
 
-        for pipe_id in self.possible_output_pipelines:
-            self.add_dummy_pipeline(pipe_id, is_output=True)
-
-        for pipe_id, pipe in setup_obj['print-pipes'].items():
-            self.create_print_pipeline(pipe_id, pipe['time-frame'], pipe['values-per-time-frame'])
-
-        for pipe_id, pipe in setup_obj['input-pipes'].items():
-            self.open_input_pipeline(pipe['host'], pipe['port'], pipe_id, pipe['time-frame'], pipe['values-per-time-frame'])
+        self.possible_output_pipelines = set(pipe_id for pipe_id, pipe in self.pipelines.items() if isinstance(pipe, OutputPipeline))
 
     def cleanup(self):
         for sensor in self.sensors.values():
@@ -48,6 +41,8 @@ class GeneralAssignment:
             output_pipe = self.pipelines[output_id]
 
             if output_pipe.valid and input_pipe.buffer_in:
+                #output_pipe.buffer_out += input_pipe.buffer_in
+                #input_pipe.buffer_in.clear()
                 output_pipe.buffer_out.append(input_pipe.buffer_in[0])
                 del input_pipe.buffer_in[0]
 
@@ -61,39 +56,44 @@ class GeneralAssignment:
         for pipeline in self.pipelines.values():
             pipeline.update_send()  # only affects output pipelines
 
+    def create_pipeline(self, pipe_id, pipeline_config):
+        pipe_type = pipeline_config['type']  # get here, so we get no confusing exceptions during the possible raise
+
+        if pipe_id in self.pipelines and self.pipelines[pipe_id].valid:
+            raise AssignmentException("pipe_id {} has already a valid pipeline connection (during creating {} pipeline)".format(pipe_id, pipe_type))
+
+        if pipe_type == 'output':
+            self.pipelines[pipe_id] = OutputPipeline(None, pipe_id, 0, 0, valid=False)  # dummy pipeline, because it must exist
+        elif pipe_type == 'print':
+            time_frame = pipeline_config['time-frame']
+            values_per_time_frame = pipeline_config['values-per-time-frame']
+
+            self.pipelines[pipe_id] = PrintPipeline(pipe_id, time_frame, values_per_time_frame)
+        elif pipe_type == 'input':
+            host = pipeline_config['host']
+            port = pipeline_config['port']
+            time_frame = pipeline_config['time-frame']
+            values_per_time_frame = pipeline_config['values-per-time-frame']
+
+            conn = Client(host, port)
+            conn.send({
+                'pipeline-request': {
+                    'assignment-id': self.assignment_id,
+                    'pipe-id': pipe_id,
+                    'time-frame': time_frame,
+                    'values-per-time-frame': values_per_time_frame
+                }
+            })
+            conn.recv_acknowledgement()
+            self.pipelines[pipe_id] = InputPipeline(conn, pipe_id, time_frame, values_per_time_frame)
+        else:
+            raise AssignmentException("pipeline type {} does not exist (during creating pipeline {})".format(pipe_type, pipe_id))
+
     def assign_output_pipeline(self, conn, pipe_id, time_frame, values_per_time_frame):
         if pipe_id in self.pipelines and self.pipelines[pipe_id].valid:
             raise AssignmentException("pipe_id {} has already a valid pipeline connection (during assign output pipeline)".format(pipe_id))
 
-        self.pipelines[pipe_id] = PipelineConnection(conn, pipe_id, time_frame, values_per_time_frame, is_output=True)
-
-    def create_print_pipeline(self, pipe_id, time_frame, values_per_time_frame):
-        if pipe_id in self.pipelines and self.pipelines[pipe_id].valid:
-            raise AssignmentException("pipe_id {} has already a valid pipeline connection (during create print pipeline)".format(pipe_id))
-
-        self.pipelines[pipe_id] = PrintPipeline(pipe_id, time_frame, values_per_time_frame)
-
-    def open_input_pipeline(self, host, port, pipe_id, time_frame, values_per_time_frame):
-        if pipe_id in self.pipelines and self.pipelines[pipe_id].valid:
-            raise AssignmentException("pipe_id {} has already a valid pipeline connection (during open input pipeline)".format(pipe_id))
-
-        conn = Client(host, port)
-        conn.send({
-            'pipeline-request': {
-                'assignment-id': self.assignment_id,
-                'pipe-id': pipe_id,
-                'time-frame': time_frame,
-                'values-per-time-frame': values_per_time_frame
-            }
-        })
-        conn.recv_acknowledgement()
-        self.pipelines[pipe_id] = PipelineConnection(conn, pipe_id, time_frame, values_per_time_frame, is_output=False)
-
-    def add_dummy_pipeline(self, pipe_id, is_output):
-        if pipe_id in self.pipelines and self.pipelines[pipe_id].valid:
-            raise AssignmentException("pipe_id {} has already a valid pipeline connection (during create dummy pipeline)".format(pipe_id))
-
-        self.pipelines[pipe_id] = PipelineConnection(None, pipe_id, 0, 0, is_output, valid=False)
+        self.pipelines[pipe_id] = OutputPipeline(conn, pipe_id, time_frame, values_per_time_frame, valid=True)
 
     def check_assignment(self):
         return True

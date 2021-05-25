@@ -5,12 +5,11 @@ from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownExcep
 INPUT_PIPELINE_TIMEOUT_MS = 3000
 
 
-class PipelineConnection:
+class AbstractPipeline:
 
-    def __init__(self, conn, pipe_id, time_frame, values_per_time_frame, is_output, valid=True):
+    def __init__(self, conn, pipe_id, time_frame, values_per_time_frame, valid):
         self.conn = conn
         self.pipe_id = pipe_id
-        self.is_output = is_output
 
         self.valid = valid
 
@@ -22,7 +21,7 @@ class PipelineConnection:
 
         self.last_time_frame = 0
 
-        self.last_data_receive = ticks_ms()
+        self.last_data_exchange = ticks_ms()
 
     def invalidate(self, reason):
         self.conn.socket.close()
@@ -38,10 +37,9 @@ class PipelineConnection:
 
         try:
             obj = self.conn.recv()
-            # log("receiving message | len: {}", len(obj))
-            self.last_data_receive = ticks_ms()
+            self.last_data_exchange = ticks_ms()
         except NoReadableDataException:
-            if not self.is_output and ticks_ms_diff_to_current(self.last_data_receive) > INPUT_PIPELINE_TIMEOUT_MS:
+            if ticks_ms_diff_to_current(self.last_data_exchange) > INPUT_PIPELINE_TIMEOUT_MS:
                 self.invalidate("no data received for more than {} milliseconds".format(INPUT_PIPELINE_TIMEOUT_MS))
         except ConnectionClosedDownException as e:
             self.invalidate("connection closed down: {}".format(e))
@@ -57,10 +55,10 @@ class PipelineConnection:
                     self.invalidate("input buffer length > 2000 : {}".format(len(self.buffer_in)))
 
     def update_send(self):
-        if not self.valid or not self.is_output:
+        if not self.valid:
             return
 
-        if self.time_frame == 0 or ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame:
+        if (self.time_frame is 0 and self.buffer_out) or (self.time_frame is not 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
             try:
                 self.conn.send(self.buffer_out)
                 # log("sending message | len: {}", len(self.buffer_out))
@@ -69,29 +67,37 @@ class PipelineConnection:
             else:
                 self.buffer_out.clear()
                 self.last_time_frame = ticks_ms()
+                self.last_data_exchange = ticks_ms()
 
     def handle_control_message(self, obj):
         raise Exception("cannot process control message on pipeline")
 
 
-class PrintPipeline:
+class InputPipeline(AbstractPipeline):
+
+    def __init__(self, conn, pipe_id, time_frame, values_per_time_frame):
+        super().__init__(conn, pipe_id, time_frame, values_per_time_frame, True)
+
+    def update_send(self):
+        pass
+
+
+class OutputPipeline(AbstractPipeline):
+
+    def __init__(self, conn, pipe_id, time_frame, values_per_time_frame, valid):
+        super().__init__(conn, pipe_id, time_frame, values_per_time_frame, valid)
+
+
+class PrintPipeline(AbstractPipeline):
 
     def __init__(self, pipe_id, time_frame, values_per_time_frame):
-        self.pipe_id = pipe_id
-        self.time_frame = time_frame
-        self.values_per_time_frame = values_per_time_frame
-
-        self.valid = True
-
-        self.buffer_out = []
-
-        self.last_time_frame = 0
+        super().__init__(None, pipe_id, time_frame, values_per_time_frame, True)
 
     def update_recv(self):
         pass
 
     def update_send(self):
-        if self.time_frame == 0 or ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame:
+        if (self.time_frame is 0 and self.buffer_out) or (self.time_frame is not 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
             print(self.buffer_out)
             self.buffer_out.clear()
             self.last_time_frame = ticks_ms()
