@@ -92,17 +92,15 @@ class Worker:
                 values_per_time_frame = d['pipeline-request']['values-per-time-frame']
 
                 if assignment_id in self.assignments:
-                    if pipe_id in self.assignments[assignment_id].possible_output_pipelines:
-                        self.assignments[assignment_id].assign_output_pipeline(conn, pipe_id, time_frame, values_per_time_frame)
-                        self.general_connections.remove(conn)
-                        log("promoting general connection {} to output pipeline connection on assignment {} with pipe-id {} | num general connections: {}", conn.address, assignment_id, pipe_id, len(self.general_connections))
-                    else:
-                        raise AssignmentException("pipe-id {} does not exists in outputs of assignment {}".format(pipe_id, assignment_id))
+                    self.assignments[assignment_id].assign_output_pipeline(conn, pipe_id, time_frame, values_per_time_frame)
+                    self.general_connections.remove(conn)
+                    log("promoting general connection {} to output pipeline connection on assignment {} with pipe-id {} | num general connections: {}", conn.address, assignment_id, pipe_id, len(self.general_connections))
                 else:
                     raise AssignmentException("assignments {} used for pipe-id {} does not exist".format(assignment_id, pipe_id))
             else:
                 raise Exception("invalid control-message kind")
         except Exception as e:
+            raise e
             self.remove_general_connection(conn, "error during processing control-message: {} {}".format(type(e), e))
         else:
             conn.send_acknowledgement()

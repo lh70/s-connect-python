@@ -19,6 +19,7 @@ if not RUNNING_MICROPYTHON:
 
 from lh_lib.network import Client
 
+
 micropython_worker_conn = Client('192.168.2.177', 8090)
 micropython_worker_conn.send({
     'remove-assignment': {
@@ -29,16 +30,16 @@ micropython_worker_conn.recv_acknowledgement()
 micropython_worker_conn.send({
     'processing-assignment': {
         'assignment-id': '1',
-        'sensors': {
-            's1': {'name': 'co2'}
-        },
         'pipelines': {
-            'p1': {'type': 'output'}
+            'sensor0': {'type': 'sensor', 'sensor-name': 'co2'},
+            'pipe0': {'type': 'output'}
         },
-        'sensor-processing': {
-            's1': 'p1'
-        },
-        'pipeline-processing': {},
+        'processing': [
+            {
+                'method': 'pass_through',
+                'kwargs': {'in0': 'sensor0', 'out0': 'pipe0'}
+            }
+        ],
     }
 })
 micropython_worker_conn.recv_acknowledgement()
@@ -55,15 +56,16 @@ desktop_worker_conn.recv_acknowledgement()
 desktop_worker_conn.send({
     'processing-assignment': {
         'assignment-id': '1',
-        'sensors': {},
         'pipelines': {
-            'p1': {'type': 'input', 'host': '192.168.2.177', 'port': 8090, 'time-frame': 0, 'values-per-time-frame': 0},
-            'p2': {'type': 'output'}
+            'pipe0': {'type': 'input', 'host': '192.168.2.177', 'port': 8090, 'time-frame': 0, 'values-per-time-frame': 0},
+            'pipe1': {'type': 'output'}
         },
-        'sensor-processing': {},
-        'pipeline-processing': {
-            'p1': 'p2'
-        },
+        'processing': [
+            {
+                'method': 'pass_through',
+                'kwargs': {'in0': 'pipe0', 'out0': 'pipe1'}
+            }
+        ],
     }
 })
 desktop_worker_conn.recv_acknowledgement()
@@ -80,15 +82,16 @@ desktop_worker_conn.recv_acknowledgement()
 desktop_worker_conn.send({
     'processing-assignment': {
         'assignment-id': '1',
-        'sensors': {},
         'pipelines': {
-            'p2':     {'type': 'input', 'host': 'localhost', 'port': 8091, 'time-frame': 0, 'values-per-time-frame': 0},
-            'print1': {'type': 'print', 'time-frame': 0, 'values-per-time-frame': 0}
+            'pipe1': {'type': 'input', 'host': 'localhost', 'port': 8091, 'time-frame': 0, 'values-per-time-frame': 0},
+            'print0': {'type': 'print', 'time-frame': 0, 'values-per-time-frame': 0}
         },
-        'sensor-processing': {},
-        'pipeline-processing': {
-            'p2': 'print1'
-        },
+        'processing': [
+            {
+                'method': 'pass_through',
+                'kwargs': {'in0': 'pipe1', 'out0': 'print0'}
+            }
+        ],
     }
 })
 desktop_worker_conn.recv_acknowledgement()

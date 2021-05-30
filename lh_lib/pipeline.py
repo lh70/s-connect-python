@@ -23,10 +23,16 @@ class AbstractPipeline:
 
         self.last_data_exchange = ticks_ms()
 
+    def cleanup(self):
+        self.invalidate("cleanup")
+
     def invalidate(self, reason):
-        self.conn.socket.close()
-        log("invalidating pipeline connection: {} | pipe_id: {} | reason: {} | lost output buffer of length: {}", self.conn.address, self.pipe_id, reason, len(self.buffer_out))
-        self.conn = None
+        if self.conn:
+            self.conn.socket.close()
+            log("invalidating pipeline connection: {} | pipe_id: {} | reason: {} | lost output buffer of length: {}", self.conn.address, self.pipe_id, reason, len(self.buffer_out))
+            self.conn = None
+        else:
+            log("invalidating pipeline | pipe_id: {} | reason: {} | lost output buffer of length: {}", self.pipe_id, reason, len(self.buffer_out))
         self.buffer_in = []
         self.buffer_out = []
         self.valid = False
@@ -56,6 +62,7 @@ class AbstractPipeline:
 
     def update_send(self):
         if not self.valid:
+            self.buffer_out.clear()
             return
 
         if (self.time_frame is 0 and self.buffer_out) or (self.time_frame is not 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
@@ -84,14 +91,25 @@ class InputPipeline(AbstractPipeline):
 
 class OutputPipeline(AbstractPipeline):
 
-    def __init__(self, conn, pipe_id, time_frame, values_per_time_frame, valid):
-        super().__init__(conn, pipe_id, time_frame, values_per_time_frame, valid)
+    def __init__(self, pipe_id):
+        super().__init__(None, pipe_id, 0, 0, False)
+
+    def make_valid(self, conn, time_frame, values_per_time_frame):
+        self.conn = conn
+
+        self.valid = True
+
+        self.time_frame = time_frame
+        self.values_per_time_frame = values_per_time_frame
 
 
 class PrintPipeline(AbstractPipeline):
 
     def __init__(self, pipe_id, time_frame, values_per_time_frame):
         super().__init__(None, pipe_id, time_frame, values_per_time_frame, True)
+
+    def cleanup(self):
+        pass
 
     def update_recv(self):
         pass
@@ -101,3 +119,36 @@ class PrintPipeline(AbstractPipeline):
             print(self.buffer_out)
             self.buffer_out.clear()
             self.last_time_frame = ticks_ms()
+
+
+class SensorPipeline(AbstractPipeline):
+
+    def __init__(self, pipe_id, sensor_name, sensor_manager):
+        super().__init__(None, pipe_id, 0, 0, True)
+        self.sensor = sensor_manager.get_sensor_lease(sensor_name)
+
+    def cleanup(self):
+        self.sensor.release_sensor_lease()
+
+    def update_recv(self):
+        if self.sensor.value is not None:
+            self.buffer_in.append(self.sensor.value)
+
+    def update_send(self):
+        pass
+
+
+class LocalPipeline(AbstractPipeline):
+
+    def __init__(self, pipe_id):
+        super().__init__(None, pipe_id, 0, 0, True)
+        self.buffer_out = self.buffer_in
+
+    def cleanup(self):
+        pass
+
+    def update_recv(self):
+        pass
+
+    def update_send(self):
+        pass
