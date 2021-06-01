@@ -100,7 +100,6 @@ class Worker:
             else:
                 raise Exception("invalid control-message kind")
         except Exception as e:
-            raise e
             self.remove_general_connection(conn, "error during processing control-message: {} {}".format(type(e), e))
         else:
             conn.send_acknowledgement()
