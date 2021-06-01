@@ -368,8 +368,6 @@ Processing Steps:
     * the function must follow this guideline:
         * input-like arguments start with in, example: in0, in1, in2, in3,...
         * output-like arguments start with out, example: out0, out1, out2,...
-        * one argument must be functions
-            * this is a utility dictionary with k to function mapping
         * one argument must be storage
             * this is a function unique dictionary, which persists over calls
         * there must be no further arguments

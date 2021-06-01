@@ -68,8 +68,9 @@ def get_lists_from_filter_combine_newest_naive(in0, in1, filter_return_value):
 
 
 def clear_lists_from_filter_combine_newest_naive(in0, in1, filter_return_value):
-    in0.clear()
-    in1.clear()
+    if filter_return_value[0] < len(in0):
+        in0.clear()
+        in1.clear()
 
 
 """
