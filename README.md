@@ -334,4 +334,46 @@ In contrast, pipeline connections can currently only process data messages and w
 messages are received after promotion from general connection. In the future there will most likely be control messages
 supported for load balancing and automatic adjustments.
 
-TODO: Write the worker (control message) communication structure like done for Version 1
+### Version 2.1
+In this new Version I will rework the processing part of the assignment. Additionally, I will expand the idea of
+pipelines to fit with the new processing model.
+
+Pipelines:
+* pipelines can now be of different kinds
+* the pipelines of version 2 are now the input and output pipeline types
+    * output pipelines have only their type and id and are open to be requested on the defined device
+    * input pipelines define type and the attributes from version 2 which define what output pipeline on what device to
+      request.
+* new type: print pipeline
+    * defines type, id, time-frame, values-per-time-frame
+    * and counts as an output pipeline with no input pipeline, thus the merged attributs and works like an output
+      pipeline which prints the buffer instead of sending it.
+* new type: sensor pipeline
+    * defines type, id and sensor-name
+    * wraps a sensor into an input like pipeline, where it will deliver exactly one or no sensor value into the input
+      buffer per iteration, depending on sensor state and behaviour.
+* new type: local pipeline
+    * defines type and id
+    * to be used with multiple processing steps on one device, as it is not allowed to use network (input/output)
+      pipelines here, because they will block on assignment (and are slow). This workaround defines a loop-back
+      pipeline, where the output-buffer is exactly the input-buffer. This is allowed due to the synchronous nature of 
+      this framework. Each processing step is called and finishes after another, so the buffer cannot be corrupted.
+
+Processing Steps:
+* a processing step is defined by the following attributes:
+    * the function to call
+    * the kwargs mapping, which maps the functions arguments to input- and output-like pipelines
+        * only in* and out* like arguments are currently allowed in this definition
+* the function must be implemented beforehand in the lh_lib.processing module
+    * the function must follow this guideline:
+        * input-like arguments start with in, example: in0, in1, in2, in3,...
+        * output-like arguments start with out, example: out0, out1, out2,...
+        * one argument must be functions
+            * this is a utility dictionary with k to function mapping
+        * one argument must be storage
+            * this is a function unique dictionary, which persists over calls
+        * there must be no further arguments
+        * the function must clear the input buffer of the items it processed
+        * the function fills the output buffer with result values
+        * the buffers are not to be replaced, but only manipulated inplace
+            * the in* and out* buffers directly correspond to the pipeline buffers

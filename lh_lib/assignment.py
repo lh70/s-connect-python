@@ -22,7 +22,7 @@ class GeneralAssignment:
         for proc in self.processing:
             proc['method'] = getattr(lh_lib.processing, proc['method'])
 
-            kwargs = {'storage': {}, 'functions': FUNCTION_DICTIONARY}
+            kwargs = {'storage': {}}
 
             for kw, pipe_id in proc['kwargs'].items():
                 if kw.startswith('in'):
@@ -92,6 +92,3 @@ class GeneralAssignment:
                 self.pipelines[pipe_id].make_valid(conn, time_frame, values_per_time_frame)
         else:
             raise AssignmentException("pipe-id {} does not exists in outputs of assignment {}".format(pipe_id, self.assignment_id))
-
-
-FUNCTION_DICTIONARY = {}
