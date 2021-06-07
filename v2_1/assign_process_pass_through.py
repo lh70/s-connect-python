@@ -1,14 +1,12 @@
-"""
-Needs:
-* one micropython worker ('192.168.2.177', 8090) with sensor 'rotary_encoder'
-* one desktop worker ('localhost', 8090)
-* one desktop worker ('localhost', 8091)
-"""
-
 try:
     import usys as sys
 except ImportError:
     import sys
+
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
 
@@ -16,83 +14,34 @@ if not RUNNING_MICROPYTHON:
     import os
     sys.path.insert(1, os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
 
+from lh_lib.distribution import Distributor
 
-from lh_lib.network import Client
 
-
-micropython_worker_conn = Client('192.168.2.177', 8090)
-micropython_worker_conn.send({
-    'remove-assignment': {
-        'assignment-id': '1'
+assignment = {
+    'assignment-id': '1',
+    'pipelines': {
+        'sensor0': {'type': 'sensor', 'sensor-name': 'co2'},
+        'print0': {'type': 'print', 'time-frame': 0, 'values-per-time-frame': 0}
+    },
+    'processing': {
+        'proc0': {'method': 'pass_through', 'kwargs': {'in0': 'sensor0', 'out0': 'pipe0'}},
+        'proc1': {'method': 'pass_through', 'kwargs': {'in0': 'pipe0', 'out0': 'pipe1'}},
+        'proc2': {'method': 'pass_through', 'kwargs': {'in0': 'pipe1', 'out0': 'print0'}}
     }
-})
-micropython_worker_conn.recv_acknowledgement()
-micropython_worker_conn.send({
-    'processing-assignment': {
-        'assignment-id': '1',
-        'pipelines': {
-            'sensor0': {'type': 'sensor', 'sensor-name': 'co2'},
-            'pipe0': {'type': 'output'}
-        },
-        'processing': [
-            {
-                'method': 'pass_through',
-                'kwargs': {'in0': 'sensor0', 'out0': 'pipe0'}
-            }
-        ],
-    }
-})
-micropython_worker_conn.recv_acknowledgement()
-micropython_worker_conn.socket.close()
+}
 
+devices = {
+    'esp32': {'host': '192.168.2.177', 'port': 8090, 'max-input-time-frame': 100, 'max-input-values-per-time-frame': 0},
+    'pc-local0': {'host': '192.168.2.163', 'port': 8090, 'max-input-time-frame': 100, 'max-input-values-per-time-frame': 0},
+    'pc-local1': {'host': '192.168.2.163', 'port': 8091, 'max-input-time-frame': 100, 'max-input-values-per-time-frame': 0}
+}
 
-desktop_worker_conn = Client('localhost', 8091)
-desktop_worker_conn.send({
-    'remove-assignment': {
-        'assignment-id': '1'
-    }
-})
-desktop_worker_conn.recv_acknowledgement()
-desktop_worker_conn.send({
-    'processing-assignment': {
-        'assignment-id': '1',
-        'pipelines': {
-            'pipe0': {'type': 'input', 'host': '192.168.2.177', 'port': 8090, 'time-frame': 0, 'values-per-time-frame': 0},
-            'pipe1': {'type': 'output'}
-        },
-        'processing': [
-            {
-                'method': 'pass_through',
-                'kwargs': {'in0': 'pipe0', 'out0': 'pipe1'}
-            }
-        ],
-    }
-})
-desktop_worker_conn.recv_acknowledgement()
-desktop_worker_conn.socket.close()
+distribution = [
+    ['esp32', ['proc0']],
+    ['pc-local0', ['proc1']],
+    ['pc-local1', ['proc2']]
+]
 
-
-desktop_worker_conn = Client('localhost', 8090)
-desktop_worker_conn.send({
-    'remove-assignment': {
-        'assignment-id': '1'
-    }
-})
-desktop_worker_conn.recv_acknowledgement()
-desktop_worker_conn.send({
-    'processing-assignment': {
-        'assignment-id': '1',
-        'pipelines': {
-            'pipe1': {'type': 'input', 'host': 'localhost', 'port': 8091, 'time-frame': 0, 'values-per-time-frame': 0},
-            'print0': {'type': 'print', 'time-frame': 0, 'values-per-time-frame': 0}
-        },
-        'processing': [
-            {
-                'method': 'pass_through',
-                'kwargs': {'in0': 'pipe1', 'out0': 'print0'}
-            }
-        ],
-    }
-})
-desktop_worker_conn.recv_acknowledgement()
-desktop_worker_conn.socket.close()
+d = Distributor()
+distribution_assignments, assignment_order = d.build_distributed_assignment(assignment, devices, distribution)
+d.distribute_assignments(distribution_assignments, assignment_order, devices)
