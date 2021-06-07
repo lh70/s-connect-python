@@ -16,32 +16,14 @@ if not RUNNING_MICROPYTHON:
     import os
     sys.path.insert(1, os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
 
+from lh_lib.distribution import Distributor
 
-from lh_lib.network import Client
 
-micropython_worker_conn = Client('192.168.2.177', 8090)
-micropython_worker_conn.send({
-    'remove-assignment': {
-        'assignment-id': '1'
-    }
-})
-micropython_worker_conn.recv_acknowledgement()
-micropython_worker_conn.socket.close()
+devices = {
+    'esp32': {'host': '192.168.2.177', 'port': 8090, 'max-input-time-frame': 100, 'max-input-values-per-time-frame': 0},
+    'pc-local0': {'host': '192.168.2.163', 'port': 8090, 'max-input-time-frame': 100, 'max-input-values-per-time-frame': 0},
+    'pc-local1': {'host': '192.168.2.163', 'port': 8091, 'max-input-time-frame': 100, 'max-input-values-per-time-frame': 0}
+}
 
-micropython_worker_conn = Client('localhost', 8090)
-micropython_worker_conn.send({
-    'remove-assignment': {
-        'assignment-id': '1'
-    }
-})
-micropython_worker_conn.recv_acknowledgement()
-micropython_worker_conn.socket.close()
-
-micropython_worker_conn = Client('localhost', 8091)
-micropython_worker_conn.send({
-    'remove-assignment': {
-        'assignment-id': '1'
-    }
-})
-micropython_worker_conn.recv_acknowledgement()
-micropython_worker_conn.socket.close()
+d = Distributor()
+d.remove_assignments('1', devices)

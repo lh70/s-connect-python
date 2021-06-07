@@ -17,8 +17,6 @@ storage: dict(k->obj) semi-persistent storage that is empty on program start
                       and is kept persistent and unique for each processing function.
 """
 
-from lh_lib.processing_utility import filter
-
 
 def map_test(in0, out0, storage):
     for val in in0:
