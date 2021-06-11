@@ -103,41 +103,6 @@ class OutputPipeline(AbstractPipeline):
         self.values_per_time_frame = values_per_time_frame
 
 
-class PrintPipeline(AbstractPipeline):
-
-    def __init__(self, pipe_id, time_frame, values_per_time_frame):
-        super().__init__(None, pipe_id, time_frame, values_per_time_frame, True)
-
-    def cleanup(self):
-        pass
-
-    def update_recv(self):
-        pass
-
-    def update_send(self):
-        if (self.time_frame is 0 and self.buffer_out) or (self.time_frame is not 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
-            print(self.buffer_out)
-            self.buffer_out.clear()
-            self.last_time_frame = ticks_ms()
-
-
-class SensorPipeline(AbstractPipeline):
-
-    def __init__(self, pipe_id, sensor_name, sensor_manager):
-        super().__init__(None, pipe_id, 0, 0, True)
-        self.sensor = sensor_manager.get_sensor_lease(sensor_name)
-
-    def cleanup(self):
-        self.sensor.release_sensor_lease()
-
-    def update_recv(self):
-        if self.sensor.value is not None:
-            self.buffer_in.append(self.sensor.value)
-
-    def update_send(self):
-        pass
-
-
 class LocalPipeline(AbstractPipeline):
 
     def __init__(self, pipe_id):

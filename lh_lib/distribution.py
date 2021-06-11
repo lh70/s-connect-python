@@ -1,5 +1,6 @@
 from lh_lib.network import Client
 
+
 class Distributor:
 
     def build_distributed_assignment(self, assignment, devices, distribution):
@@ -20,14 +21,10 @@ class Distributor:
                 distribution_assignments[device_id]['processing'].append(proc)
 
                 for kw, pipe_id in proc_kwargs.items():
-                    if pipe_id in assignment['pipelines']:
-                        # currently no check for double usage
-                        distribution_assignments[device_id]['pipelines'][pipe_id] = assignment['pipelines'][pipe_id]
-                        # del assignment['pipelines'][pipe_id] possible but needs check for side effects
-                    elif kw.startswith('out'):
+                    if kw.startswith('out'):
                         assert pipe_id not in pipeline_exchange
                         pipeline_exchange[pipe_id] = device_id
-                    else:
+                    elif kw.startswith('in'):
                         assert pipe_id in pipeline_exchange
                         output_device_id = pipeline_exchange[pipe_id]
                         output_device_attrs = devices[output_device_id]
@@ -54,6 +51,9 @@ class Distributor:
                             }
                             distribution_assignments[output_device_id]['pipelines'][pipe_id] = {'type': 'output'}
                             del pipeline_exchange[pipe_id]
+                    else:
+                        # ignore other keywords which do not represent pipelines
+                        pass
         return distribution_assignments, assignment_order
 
     def distribute_assignments(self, distribution_assignments, assignment_order, devices):

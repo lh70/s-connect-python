@@ -1,6 +1,6 @@
 from lh_lib.network import Client
 from lh_lib.exceptions import AssignmentException
-from lh_lib.pipeline import InputPipeline, OutputPipeline, PrintPipeline, SensorPipeline, LocalPipeline
+from lh_lib.pipeline import InputPipeline, OutputPipeline, LocalPipeline
 
 import lh_lib.processing
 
@@ -11,6 +11,7 @@ class GeneralAssignment:
         self.setup_obj = setup_obj
         self.sensor_manager = sensor_manager
         self.assignment_id = setup_obj['assignment-id']
+        self.leased_sensors = []
 
         # pipeline setup
         self.pipelines = {}
@@ -22,19 +23,22 @@ class GeneralAssignment:
         for proc in self.processing:
             proc['method'] = getattr(lh_lib.processing, proc['method'])
 
-            kwargs = {'storage': {}}
+            proc['kwargs']['storage'] = {}
 
-            for kw, pipe_id in proc['kwargs'].items():
+            for kw, value in proc['kwargs'].items():
                 if kw.startswith('in'):
-                    kwargs[kw] = self.pipelines[pipe_id].buffer_in
-                else:
-                    kwargs[kw] = self.pipelines[pipe_id].buffer_out
-
-            proc['kwargs'] = kwargs
+                    proc['kwargs'][kw] = self.pipelines[value].buffer_in
+                elif kw.startswith('out'):
+                    proc['kwargs'][kw] = self.pipelines[value].buffer_out
+                elif kw.startswith('sensor'):
+                    proc['kwargs'][kw] = self.sensor_manager.get_sensor_lease(value)
 
     def cleanup(self):
         for pipeline in self.pipelines.values():
             pipeline.cleanup()
+
+        for sensor in self.leased_sensors:
+            sensor.release_sensor_lease()
 
     def update(self):
         for pipeline in self.pipelines.values():
@@ -52,15 +56,7 @@ class GeneralAssignment:
         if pipe_id in self.pipelines and self.pipelines[pipe_id].valid:
             raise AssignmentException("pipe_id {} has already a valid pipeline connection (during creating {} pipeline)".format(pipe_id, pipe_type))
 
-        if pipe_type == 'print':
-            time_frame = pipeline_config['time-frame']
-            values_per_time_frame = pipeline_config['values-per-time-frame']
-
-            self.pipelines[pipe_id] = PrintPipeline(pipe_id, time_frame, values_per_time_frame)
-        elif pipe_type == 'sensor':
-            sensor_name = pipeline_config['sensor-name']
-            self.pipelines[pipe_id] = SensorPipeline(pipe_id, sensor_name, self.sensor_manager)
-        elif pipe_type == 'input':
+        if pipe_type == 'input':
             host = pipeline_config['host']
             port = pipeline_config['port']
             time_frame = pipeline_config['time-frame']

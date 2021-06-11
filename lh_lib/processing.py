@@ -16,6 +16,25 @@ outNN: list of result values
 storage: dict(k->obj) semi-persistent storage that is empty on program start
                       and is kept persistent and unique for each processing function.
 """
+from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
+
+
+def sensor_read(out0, sensor, storage):
+    if sensor.value is not None:
+        out0.append(sensor.value)
+
+
+def print_out(in0, time_frame, values_per_time_frame, storage):
+    if 'last_time_frame' not in storage:
+        storage['last_time_frame'] = ticks_ms()
+
+    if time_frame is 0 and in0:
+        print(in0)
+        in0.clear()
+    elif time_frame is not 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
+        print(in0)
+        in0.clear()
+        storage['last_time_frame'] = ticks_ms()
 
 
 def map_test(in0, out0, storage):

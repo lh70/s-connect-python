@@ -19,16 +19,15 @@ from lh_lib.distribution import Distributor
 
 assignment = {
     'assignment-id': '1',
-    'pipelines': {
-        'sensor0': {'type': 'sensor', 'sensor-name': 'co2'},
-        'print0': {'type': 'print', 'time-frame': 0, 'values-per-time-frame': 0}
-    },
     'processing': {
-        'proc0': {'method': 'pass_through', 'kwargs': {'in0': 'sensor0', 'out0': 'pipe0'}},
+        'proc0': {'method': 'sensor_read', 'kwargs': {'out0': 'pipe0', 'sensor': 'rotary_encoder'}},
         'proc1': {'method': 'pass_through', 'kwargs': {'in0': 'pipe0', 'out0': 'pipe1'}},
-        'proc2': {'method': 'pass_through', 'kwargs': {'in0': 'pipe1', 'out0': 'print0'}}
+        'proc2': {'method': 'pass_through', 'kwargs': {'in0': 'pipe1', 'out0': 'pipe2'}},
+        'proc3': {'method': 'pass_through', 'kwargs': {'in0': 'pipe2', 'out0': 'pipe3'}},
+        'proc4': {'method': 'print_out', 'kwargs': {'in0': 'pipe3', 'time_frame': 0, 'values_per_time_frame': 0}}
     }
 }
+
 
 devices = {
     'esp32': {'host': '192.168.2.177', 'port': 8090, 'max-input-time-frame': 100, 'max-input-values-per-time-frame': 0},
@@ -37,9 +36,9 @@ devices = {
 }
 
 distribution = [
-    ['esp32', ['proc0']],
-    ['pc-local0', ['proc1']],
-    ['pc-local1', ['proc2']]
+    ['esp32', ['proc0', 'proc1']],
+    ['pc-local0', ['proc2']],
+    ['pc-local1', ['proc3', 'proc4']]
 ]
 
 d = Distributor()

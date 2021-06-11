@@ -14,13 +14,11 @@ from lh_lib.distribution import Distributor
 
 assignment = {
     'assignment-id': '1',
-    'pipelines': {
-        'sensor0': {'type': 'sensor', 'sensor-name': 'co2'},
-        'print0': {'type': 'print', 'time-frame': 0, 'values-per-time-frame': 0}
-    },
     'processing': {
-        'proc0': {'method': 'pass_through', 'kwargs': {'in0': 'sensor0', 'out0': 'pipe0'}},
-        'proc1': {'method': 'pass_through', 'kwargs': {'in0': 'pipe0', 'out0': 'print0'}},
+        'proc0': {'method': 'sensor_read', 'kwargs': {'out0': 'pipe0', 'sensor': 'co2'}},
+        'proc1': {'method': 'pass_through', 'kwargs': {'in0': 'pipe0', 'out0': 'pipe1'}},
+        'proc2': {'method': 'pass_through', 'kwargs': {'in0': 'pipe1', 'out0': 'pipe2'}},
+        'proc3': {'method': 'print_out', 'kwargs': {'in0': 'pipe2', 'time_frame': 0, 'values_per_time_frame': 0}}
     }
 }
 
@@ -29,7 +27,7 @@ devices = {
 }
 
 distribution = [
-    ['esp32', ['proc0', 'proc1']]
+    ['esp32', ['proc0', 'proc1', 'proc2', 'proc3']]
 ]
 
 d = Distributor()
