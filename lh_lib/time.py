@@ -1,12 +1,5 @@
-try:
-    import usys as sys
-except ImportError:
-    import sys
-
-try:
-    import utime as time
-except ImportError:
-    import time
+import sys
+import time
 
 RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
 

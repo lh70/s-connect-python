@@ -1,4 +1,5 @@
-import uos
+import os
+import sys
 
 """
 In this document I will gather useful python/micropython code, like a cheatsheet.
@@ -41,7 +42,56 @@ Copy (and overwrite) file:
     D:/Data/Benutzer/Lukas/PyCharmProjects/micropython/micropython/tools/pyboard.py -d COM3 -f cp lh_lib/logging.py :lh_lib/logging.py
 Remove file:
     D:/Data/Benutzer/Lukas/PyCharmProjects/micropython/micropython/tools/pyboard.py -d COM3 -f rm lh_lib/logging.py
+
+mpremote
+This is the new tool which shall replace pyboard completely at some point.
+It offers a combined repl, pyboard and filesystem functionality.
+It comes with the repository in /tools, but is also installable via pip: pip install mpremote
+
+mpremote called with no arguments connects to the repl of a currently via usb connected board.
+! The exit key combination "STRG and ]" is false for non US/GB keyboard layouts ! -> GER -> "STRG and +"
+
+mpremote currently offers no -help.
+Current commands taken from the pypi page( https://pypi.org/project/mpremote/ ):
+mpremote connect <device>        -- connect to given device
+                                    device may be: list, auto, id:x, port:x
+                                    or any valid device name/path
+mpremote disconnect              -- disconnect current device
+mpremote mount <local-dir>       -- mount local directory on device
+mpremote eval <string>           -- evaluate and print the string
+mpremote exec <string>           -- execute the string
+mpremote run <file>              -- run the given local script
+mpremote fs <command> <args...>  -- execute filesystem commands on the device
+                                    command may be: cat, ls, cp, rm, mkdir, rmdir
+                                    use ":" as a prefix to specify a file on the device
+mpremote repl                    -- enter REPL
+                                    options:
+                                        --capture <file>
+                                        --inject-code <string>
+                                        --inject-file <file>
+
 """
 
+# preferred way of checking if on micropython platform
+RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
+
 # get stats about the filesystem (free, used, sizeof blocks)
-print(uos.statvfs('/'))
+print("filesystem check:")
+print(os.statvfs('/'))
+print()
+
+# get mpy compile information
+print(".mpy compilation information")
+sys_mpy = sys.implementation.mpy
+arch = [None, 'x86', 'x64',
+    'armv6', 'armv6m', 'armv7m', 'armv7em', 'armv7emsp', 'armv7emdp',
+    'xtensa', 'xtensawin'][sys_mpy >> 10]
+print('mpy version:', sys_mpy & 0xff)
+print('mpy flags:', end='')
+if arch:
+    print(' -march=' + arch, end='')
+if sys_mpy & 0x100:
+    print(' -mcache-lookup-bc', end='')
+if not sys_mpy & 0x200:
+    print(' -mno-unicode', end='')
+print()

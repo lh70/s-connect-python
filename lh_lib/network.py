@@ -1,25 +1,10 @@
+import socket
+import struct
+import json
+
 from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
 from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, AcknowledgementException
 
-try:
-    import usocket as socket
-except ImportError:
-    import socket
-
-try:
-    import ustruct as struct
-except ImportError:
-    import struct
-
-try:
-    import ujson as json
-except ImportError:
-    import json
-
-try:
-    import usys as sys
-except ImportError:
-    import sys
 
 # general maximum for an 32bit unsigned integer value
 MAX_UNSIGNED_INT = 4294967295

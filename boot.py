@@ -9,12 +9,8 @@ import network
 import utime
 # import webrepl
 
-import lh_lib.logging
 
-from lh_lib.logging import log
-
-
-WIFI_DEVICE_NAME = 'ESP32-1'
+WIFI_DEVICE_NAME = 'ESP32-2'
 
 WIFI_CREDENTIALS = {
 }  # ssid: password
@@ -26,21 +22,16 @@ wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
 wlan.config(dhcp_hostname=WIFI_DEVICE_NAME)
 
-'''
-Set this to True for testing purposes if you run it manually
-'''
-log_state = lh_lib.logging.ACTIVE
-lh_lib.logging.ACTIVE = False
 
 while not wlan.isconnected():
-    log("Scanning for Wifi:")
+    print("Scanning for Wifi:")
     for ssid, bssid, _, _, _, _ in wlan.scan():
         ssid = ssid.decode()
-        log("Found: {}...".format(ssid))
+        print("Found: {}...".format(ssid))
 
         if ssid in WIFI_CREDENTIALS:
-            log(" credentials provided.")
-            log("Connecting...")
+            print(" credentials provided.")
+            print("Connecting...")
             wlan.connect(ssid, WIFI_CREDENTIALS[ssid], bssid=bssid)
 
             start_time = utime.ticks_ms()
@@ -48,23 +39,18 @@ while not wlan.isconnected():
                 utime.sleep_ms(500)
 
             if wlan.isconnected():
-                log(" SUCCESS")
+                print(" SUCCESS")
                 break
             else:
-                log(" FAILED. Trying next one.")
+                print(" FAILED. Trying next one.")
         else:
-            log(" no credentials provided.")
+            print(" no credentials provided.")
 
     if not wlan.isconnected():
-        log("No connectable network found. Retrying.")
+        print("No connectable network found. Retrying.")
         utime.sleep_ms(20000)
 
-log("network config: {}", wlan.ifconfig())
+print("network config: {}", wlan.ifconfig())
 
 # webrepl.start(password=WEBREPL_PASSWORD)
 # print("webREPL started with password: {}".format(WEBREPL_PASSWORD))
-
-'''
-Preserve originally intended logging active state
-'''
-lh_lib.logging.ACTIVE = log_state

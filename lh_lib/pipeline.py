@@ -33,8 +33,8 @@ class AbstractPipeline:
             self.conn = None
         else:
             log("invalidating pipeline | pipe_id: {} | reason: {} | lost output buffer of length: {}", self.pipe_id, reason, len(self.buffer_out))
-        self.buffer_in = []
-        self.buffer_out = []
+        self.buffer_in.clear()
+        self.buffer_out.clear()
         self.valid = False
 
     def update_recv(self):
