@@ -2,7 +2,7 @@ from lh_lib.network import Client
 from lh_lib.exceptions import AssignmentException
 from lh_lib.pipeline import InputPipeline, OutputPipeline, LocalPipeline
 
-import lh_lib.processing
+import lh_lib.user_processes
 
 
 class GeneralAssignment:
@@ -21,10 +21,9 @@ class GeneralAssignment:
         # processing setup
         self.processing = setup_obj['processing']
         for proc in self.processing:
-            proc['method'] = getattr(lh_lib.processing, proc['method'])
-
+            proc_cls = getattr(lh_lib.user_processes, proc['class'])
+            proc['run'] = proc_cls.run
             proc['kwargs']['storage'] = {}
-
             for kw, value in proc['kwargs'].items():
                 if kw.startswith('in'):
                     proc['kwargs'][kw] = self.pipelines[value].buffer_in
@@ -45,7 +44,7 @@ class GeneralAssignment:
             pipeline.update_recv()  # must called on every socket or they go blocking
 
         for proc in self.processing:
-            proc['method'](**proc['kwargs'])
+            proc['run'](**proc['kwargs'])
 
         for pipeline in self.pipelines.values():
             pipeline.update_send()  # only affects output pipelines
@@ -76,7 +75,7 @@ class GeneralAssignment:
         elif pipe_type == 'output':
             self.pipelines[pipe_id] = OutputPipeline(pipe_id)  # dummy (invalid) pipeline, gets valid on pipeline request
         elif pipe_type == 'local':
-            self.pipelines[pipe_id] = LocalPipeline(pipe_id)
+            self.pipelines[pipe_id] = LocalPipeline(pipe_id)  # local pipeline is always valid
         else:
             raise AssignmentException("pipeline type {} does not exist (during creating pipeline {})".format(pipe_type, pipe_id))
 
@@ -85,6 +84,6 @@ class GeneralAssignment:
             if self.pipelines[pipe_id].valid:
                 raise AssignmentException("pipe-id {} has already a valid pipeline connection (during assign output pipeline)".format(pipe_id))
             else:
-                self.pipelines[pipe_id].make_valid(conn, time_frame, values_per_time_frame)
+                self.pipelines[pipe_id].activate(conn, time_frame, values_per_time_frame)
         else:
             raise AssignmentException("pipe-id {} does not exists in outputs of assignment {}".format(pipe_id, self.assignment_id))

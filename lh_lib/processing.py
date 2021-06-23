@@ -1,55 +1,89 @@
-"""
-This module contains a list of processing functions
 
 
-the functions have to implement tho following signature:
+class Pipeline:
 
-inNN: list of values ready to be processed
-      list must be cleared by function
+    pipeline_counter = 0
 
-outNN: list of result values
-       must be filled by function
-       list gets cleared by framework:
-            pipeline logic:
-                list may not be empty on function call, so only append values to list, do not replace it
+    def __init__(self, process_out):
+        self.id = str(Pipeline.pipeline_counter)
+        Pipeline.pipeline_counter += 1
 
-storage: dict(k->obj) semi-persistent storage that is empty on program start
-                      and is kept persistent and unique for each processing function.
-"""
-from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
+        self.process_in = None
+        self.process_out = process_out
 
+    def assign_with_process(self, process_in):
+        self.process_in = process_in
+        return self
 
-def sensor_read(out0, sensor, storage):
-    if sensor.value is not None:
-        out0.append(sensor.value)
+    def build_pipeline(self, devices, distribution):
+        device_out = devices[self.process_out.device]
+        device_in = devices[self.process_in.device]
 
-
-def print_out(in0, time_frame, values_per_time_frame, storage):
-    if 'last_time_frame' not in storage:
-        storage['last_time_frame'] = ticks_ms()
-
-    if time_frame is 0 and in0:
-        print(in0)
-        in0.clear()
-    elif time_frame is not 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
-        print(in0)
-        in0.clear()
-        storage['last_time_frame'] = ticks_ms()
-
-
-def map_test(in0, out0, storage):
-    for val in in0:
-        out0.append(val + 1)
-    in0.clear()
-
-
-def filter_test(in0, out0, storage):
-    for val in in0:
-        out0.append(val > 0)
-    in0.clear()
+        if self.process_out.device == self.process_in.device:
+            distribution[self.process_out.device]['pipelines'][self.id] = {'type': 'local'}
+            distribution[self.process_in.device]['pipelines'][self.id] = {'type': 'local'}
+        elif device_out['host'] == device_in['host']:
+            distribution[self.process_out.device]['pipelines'][self.id] = {'type': 'output'}
+            distribution[self.process_in.device]['pipelines'][self.id] = {
+                'type': 'input',
+                'host': 'localhost',
+                'port': device_out['port'],
+                'time-frame': device_in['max-input-time-frame'],
+                'values-per-time-frame': device_in['max-input-values-per-time-frame']
+            }
+        else:
+            distribution[self.process_out.device]['pipelines'][self.id] = {'type': 'output'}
+            distribution[self.process_in.device]['pipelines'][self.id] = {
+                'type': 'input',
+                'host': device_out['host'],
+                'port': device_out['port'],
+                'time-frame': device_in['max-input-time-frame'],
+                'values-per-time-frame': device_in['max-input-values-per-time-frame']
+            }
 
 
-def pass_through(in0, out0, storage):
-    for val in in0:
-        out0.append(val)
-    in0.clear()
+class Process:
+
+    def __init__(self, device, **kwargs):
+        self.device = device
+        self.kwargs = kwargs
+        self.input_pipelines = []
+        self.output_pipelines = []
+
+        for k, v in self.kwargs.items():
+            if k.startswith('in'):
+                pipe = v.assign_with_process(self)
+                self.input_pipelines.append(pipe)
+                self.kwargs[k] = pipe.id
+            elif k.startswith('out'):
+                pipe = Pipeline(self)
+                self.output_pipelines.append(pipe)
+                self.kwargs[k] = pipe.id
+                setattr(self, k, pipe)
+
+    def build_distribution(self, assignment_id, devices, distribution=None, assignment_order=None, seen_processes=None):
+        if distribution is None:
+            distribution = {device_id: {'assignment-id': assignment_id, 'pipelines': {}, 'processing': []} for device_id in devices}
+        if assignment_order is None:
+            assignment_order = []
+        if seen_processes is None:
+            seen_processes = set()
+
+        seen_processes.add(self)
+
+        for pipe in self.input_pipelines:
+            if pipe.process_out not in seen_processes:
+                pipe.build_pipeline(devices, distribution)
+                pipe.process_out.build_distribution(assignment_id, devices, distribution, assignment_order, seen_processes)
+
+        if self.device not in assignment_order:
+            assignment_order.append(self.device)
+
+        distribution[self.device]['processing'].append({'class': type(self).__name__, 'kwargs': self.kwargs})
+
+        for pipe in self.output_pipelines:
+            if pipe.process_in not in seen_processes:
+                pipe.build_pipeline(devices, distribution)
+                pipe.process_in.build_distribution(assignment_id, devices, distribution, assignment_order, seen_processes)
+
+        return distribution, assignment_order

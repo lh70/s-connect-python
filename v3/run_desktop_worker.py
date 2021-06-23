@@ -1,18 +1,15 @@
+import os
+import sys
+
 try:
-    import usys as sys
+    from lh_lib.logging import log
 except ImportError:
-    import sys
-
-RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
-
-if not RUNNING_MICROPYTHON:
-    import os
     sys.path.insert(1, os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
-
+    from lh_lib.logging import log
 
 from lh_lib.worker import Worker
-from lh_lib.logging import log
 from lh_lib.sensors.manage import SensorManager
+from lh_lib.sensors.esp32.dummy import Dummy
 
 
 def run():
@@ -21,7 +18,7 @@ def run():
     else:
         port = 8090
 
-    worker = Worker(port, SensorManager())
+    worker = Worker(port, SensorManager(Dummy()))
 
     log("Worker started")
 

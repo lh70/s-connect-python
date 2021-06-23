@@ -7,11 +7,11 @@ INPUT_PIPELINE_TIMEOUT_MS = 3000
 
 class AbstractPipeline:
 
-    def __init__(self, conn, pipe_id, time_frame, values_per_time_frame, valid):
-        self.conn = conn
+    def __init__(self, pipe_id, time_frame, values_per_time_frame):
+        self.conn = None
         self.pipe_id = pipe_id
 
-        self.valid = valid
+        self.valid = False
 
         self.buffer_in = []
         self.buffer_out = []
@@ -83,7 +83,9 @@ class AbstractPipeline:
 class InputPipeline(AbstractPipeline):
 
     def __init__(self, conn, pipe_id, time_frame, values_per_time_frame):
-        super().__init__(conn, pipe_id, time_frame, values_per_time_frame, True)
+        super().__init__(pipe_id, time_frame, values_per_time_frame)
+        self.conn = conn
+        self.valid = True
 
     def update_send(self):
         pass
@@ -92,11 +94,10 @@ class InputPipeline(AbstractPipeline):
 class OutputPipeline(AbstractPipeline):
 
     def __init__(self, pipe_id):
-        super().__init__(None, pipe_id, 0, 0, False)
+        super().__init__(pipe_id, 0, 0)
 
-    def make_valid(self, conn, time_frame, values_per_time_frame):
+    def activate(self, conn, time_frame, values_per_time_frame):
         self.conn = conn
-
         self.valid = True
 
         self.time_frame = time_frame
@@ -106,8 +107,9 @@ class OutputPipeline(AbstractPipeline):
 class LocalPipeline(AbstractPipeline):
 
     def __init__(self, pipe_id):
-        super().__init__(None, pipe_id, 0, 0, True)
+        super().__init__(pipe_id, 0, 0)
         self.buffer_out = self.buffer_in
+        self.valid = True
 
     def cleanup(self):
         pass
