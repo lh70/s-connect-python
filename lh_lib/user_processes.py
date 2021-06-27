@@ -159,3 +159,16 @@ class Mean(Process):
                 storage['last_time_frame'] = ticks_ms()
 
         in0.clear()
+
+
+class Split(Process):
+
+    def __init__(self, device, in0):
+        super().__init__(device, in0=in0, out0='out0', out1='out1')
+
+    @classmethod
+    def run(cls, in0, out0, out1, storage):
+        for val in in0:
+            out0.append(val)
+            out1.append(val)
+        in0.clear()
