@@ -24,7 +24,7 @@ import pathlib
 import subprocess
 
 PRE_COMPILE = True
-NATIVE_CODE = False
+NATIVE_CODE = False  # True currently not usable. Uses to much RAM on device.
 MPY_MARCH = 'xtensawin'
 
 RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
@@ -41,15 +41,41 @@ def os_path_join(*parts):
 
 
 # checks if build file is older than lib file
-def build_file_old(lib_fp, out_fp):
-    if not os.path.exists(out_fp):
+def build_file_old(lib_fp, out_fp, old_flags):
+    if not os.path.exists(out_fp) or not old_flags.flags_match():
         return True
     return os.stat(lib_fp).st_mtime > os.stat(out_fp).st_mtime
 
 
-class M_TIMES:
+class FLAGS:
 
     def __init__(self):
+        p = subprocess.run(['mpremote', 'fs', 'cp', ':flags.json', 'build/flags.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        if p.returncode is not 0:
+            print("Could not retrieve flags.json. Creating new one.")
+            self.old_flags = {}
+        else:
+            print("Using exisiting flags.json for reference.")
+            with open('build/flags.json', 'r') as f:
+                self.old_flags = json.load(f)
+
+    def flags_match(self):
+        try:
+            return self.old_flags['PRE_COMPILE'] == PRE_COMPILE and self.old_flags['NATIVE_CODE'] == NATIVE_CODE and self.old_flags['MPY_MARCH'] == MPY_MARCH
+        except KeyError:
+            return False
+
+    @classmethod
+    def save_new_flags(cls):
+        print('saving new build/flags.json to :flags.json')
+        with open('build/flags.json', 'w') as f:
+            json.dump({'PRE_COMPILE': PRE_COMPILE, 'NATIVE_CODE': NATIVE_CODE, 'MPY_MARCH': MPY_MARCH}, f)
+        subprocess.run(['mpremote', 'fs', 'cp', 'build/flags.json', ':flags.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
+
+
+class M_TIMES:
+
+    def __init__(self, flags):
         p = subprocess.run(['mpremote', 'fs', 'cp', ':m_times.json', 'build/m_times.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         if p.returncode is not 0:
             print("Could not retrieve m_times.json. Creating new one.")
@@ -59,11 +85,13 @@ class M_TIMES:
             with open('build/m_times.json', 'r') as f:
                 self.old_m_times = json.load(f)
         self.new_m_times = {}
+        self.flags = flags
 
     # checks if device file is older than build file
     def device_file_old(self, fp):
         parts = pathlib.Path(fp).parts
         # get old flag
+
         try:
             sec = self.old_m_times
             for part in parts:
@@ -72,8 +100,12 @@ class M_TIMES:
             old_m_time = 0
             is_old = True
         else:
-            old_m_time = sec
-            is_old = os.stat(fp).st_mtime > sec
+            if self.flags.flags_match():
+                old_m_time = sec
+                is_old = os.stat(fp).st_mtime > sec
+            else:
+                old_m_time = 0
+                is_old = True
 
         # add correct m_time to new m_times
         new_sec = self.new_m_times
@@ -95,7 +127,7 @@ class M_TIMES:
 def run():
     # set correct working directory for tha case that the script is not called in its directory
     os.chdir(os.path.realpath(os.path.dirname(__file__)))
-    print(f'changed to working directory: {os.getcwd()}')
+    print(f'changed working directory to: {os.getcwd()}')
 
     # check if device is reachable
     print('checking device access (with "mpremote fs ls")...', end='')
@@ -106,8 +138,9 @@ def run():
     if not os.path.isdir('build'):
         os.mkdir('build')
 
-    # step 1: copy m_times.json
-    m_times = M_TIMES()
+    # step 1: copy m_times.json and flags.json
+    flags = FLAGS()
+    m_times = M_TIMES(flags)
 
     # step 2: pre-compile / copy
     for path, _, files in os.walk('lh_lib'):
@@ -126,9 +159,8 @@ def run():
                     print(f'removing old build file: {out_fp_noext + ".mpy"}')
                     os.remove(out_fp_noext + '.mpy')
 
-                # build file
-                if build_file_old(lib_fp, out_fp):
-                    # mpy-cross silently fails on non-existent sub-directories
+                if build_file_old(lib_fp, out_fp, flags):
+                    # mpy-cross silently fails on non-existent sub-directories, so lets ensure we have them
                     if not os.path.isdir(os.path.dirname(out_fp)):
                         os.makedirs(os.path.dirname(out_fp))
 
@@ -170,6 +202,7 @@ def run():
     os.chdir('..')
 
     # step 5: save m_times dictionary into build/m_times.json and copy build/m_times.json onto device :m_times.json
+    flags.save_new_flags()
     m_times.save_new_m_times()
 
 
