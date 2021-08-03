@@ -2,7 +2,7 @@ import lh_lib.network
 
 from lh_lib.logging import log
 from lh_lib.assignment import GeneralAssignment
-from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, AssignmentException
+from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, AssignmentException, ExpectedException, print_traceback
 
 PORT = 8090
 
@@ -99,7 +99,10 @@ class Worker:
                     raise AssignmentException("assignments {} used for pipe-id {} does not exist".format(assignment_id, pipe_id))
             else:
                 raise Exception("invalid control-message kind")
-        except Exception as e:
+        except ExpectedException as e:
             self.remove_general_connection(conn, "error during processing control-message: {} {}".format(type(e), e))
+        except Exception as e:
+            self.remove_general_connection(conn, "unexpected error during processing control-message: {} {}".format(type(e), e))
+            print_traceback(e)
         else:
             conn.send_acknowledgement()

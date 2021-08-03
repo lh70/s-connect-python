@@ -1,3 +1,5 @@
+import re
+
 from lh_lib.network import Client
 from lh_lib.exceptions import AssignmentException
 from lh_lib.pipeline import InputPipeline, OutputPipeline, LocalPipeline
@@ -25,11 +27,11 @@ class GeneralAssignment:
             proc['run'] = proc_cls.run
             proc['kwargs']['storage'] = {}
             for kw, value in proc['kwargs'].items():
-                if kw.startswith('in'):
+                if re.match('^in[0-9]+$', kw):
                     proc['kwargs'][kw] = self.pipelines[value].buffer_in
-                elif kw.startswith('out'):
+                elif re.match('^out[0-9]+$', kw):
                     proc['kwargs'][kw] = self.pipelines[value].buffer_out
-                elif kw.startswith('sensor'):
+                elif re.match('^sensor$', kw):
                     proc['kwargs'][kw] = self.sensor_manager.get_sensor_lease(value)
 
     def cleanup(self):

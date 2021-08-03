@@ -35,7 +35,9 @@ class Ultrasonic(AbstractSensor):
         sleep_us(10)
         tp.value(0)
         # wait for echo == 0 -> 1
-        self.value = time_pulse_us(self.echo_pin, 1, 20000)
+        pulse_duration = time_pulse_us(self.echo_pin, 1, 20000)
+
+        self.value = pulse_duration, self._in_cm(pulse_duration)
 
     """
     utility function for later which converts the pulse duration to a distance in cm

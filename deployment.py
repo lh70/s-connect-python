@@ -5,6 +5,18 @@ This script must be run on the host device.
 Used tools:
 mpy-cross (installable with: pip install mpy-cross)
 mpremote (installable with: pip install mpremote)
+
+
+To deploy the firmware (micropython) itself on the esp32 controller there are some steps to do beforehand:
+* install the esptool with pip:
+pip install esptool
+* download the latest GENERIC stable build from here: https://micropython.org/download/esp32/
+* hold the boot button while esptool is connecting on the following commands
+* if the esp32 is new with no prior micropython on it erase the flash with this command:
+esptool --chip esp32 --port COM3 erase_flash
+* deploy the the micropython with this command: (replace port and .bin with your information)
+esptool --chip esp32 --port COM3 --baud 460800 write_flash -z 0x1000 esp32-20210618-v1.16.bin
+
 """
 import json
 import pathlib

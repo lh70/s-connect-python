@@ -10,7 +10,7 @@ import utime
 # import webrepl
 
 
-WIFI_DEVICE_NAME = 'ESP32-2'
+WIFI_DEVICE_NAME = 'ESP32-5'
 
 WIFI_CREDENTIALS = {
 }  # ssid: password
@@ -50,7 +50,7 @@ while not wlan.isconnected():
         print("No connectable network found. Retrying.")
         utime.sleep_ms(20000)
 
-print("network config: {}", wlan.ifconfig())
+print("network config: {}".format(wlan.ifconfig()))
 
 # webrepl.start(password=WEBREPL_PASSWORD)
 # print("webREPL started with password: {}".format(WEBREPL_PASSWORD))
