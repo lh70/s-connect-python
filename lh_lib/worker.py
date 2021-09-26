@@ -96,7 +96,7 @@ class Worker:
                     self.general_connections.remove(conn)
                     log("promoting general connection {} to output pipeline connection on assignment {} with pipe-id {} | num general connections: {}", conn.address, assignment_id, pipe_id, len(self.general_connections))
                 else:
-                    raise AssignmentException("assignments {} used for pipe-id {} does not exist".format(assignment_id, pipe_id))
+                    raise AssignmentException("assignment {} used for pipe-id {} does not exist".format(assignment_id, pipe_id))
             else:
                 raise Exception("invalid control-message kind")
         except ExpectedException as e:
@@ -105,4 +105,7 @@ class Worker:
             self.remove_general_connection(conn, "unexpected error during processing control-message: {} {}".format(type(e), e))
             print_traceback(e)
         else:
-            conn.send_acknowledgement()
+            try:
+                conn.send_acknowledgement()
+            except ConnectionClosedDownException as e:
+                self.remove_general_connection(conn, "remote unexpectedly closed down connection during sending acknowledgement: {} {}".format(type(e), e))

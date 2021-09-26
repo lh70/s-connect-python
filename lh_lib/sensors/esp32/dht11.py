@@ -39,8 +39,12 @@ class DHT11(AbstractSensor):
     """
     def update(self):
         if ticks_diff(ticks_ms(), self.last_measuring) > MINIMUM_MEASURING_INTERVAL_MS:
-            self.d.measure()
-            self.value = (self.d.temperature(), self.d.humidity())
-            self.last_measuring = ticks_ms()
+            try:
+                self.d.measure()
+            except OSError:
+                pass  # ignoring this for now. This DHT11 connector implementation is very sensitive and fails on non optimal conditions sometimes.
+            else:
+                self.value = (self.d.temperature(), self.d.humidity())
+                self.last_measuring = ticks_ms()
         else:
             self.value = None

@@ -95,3 +95,33 @@ def zip_newest_and_clear_lists(in0, in1, max_ahead_buffer=300, length_min=20):
 
     del in0[0:length_read]
     del in1[0:length_read]
+
+
+def zip_slow_duplicate(in0, in1):
+    if len(in0) == 0:
+        if len(in1) > 2:
+            in1.clear()
+        return
+    if len(in1) == 0:
+        if len(in0) > 2:
+            in0.clear()
+        return
+
+    for i in zip(in0, in1):
+        yield i
+
+    if len(in0) == len(in1):
+        in0.clear()
+        in1.clear()
+    if len(in0) > len(in1):
+        for i0 in in0[len(in1):]:
+            yield i0, in1[-1]
+
+        in0.clear()
+        del in1[:-1]
+    else:
+        for i1 in in1[len(in0):]:
+            yield in0[-1], i1
+
+        del in0[:-1]
+        in1.clear()

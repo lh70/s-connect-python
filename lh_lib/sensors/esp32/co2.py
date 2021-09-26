@@ -3,6 +3,8 @@ from utime import ticks_us, ticks_diff
 
 from lh_lib.sensors.sensor import AbstractSensor
 
+MIN_PULSE_DURATION_US = 2000
+
 
 class CO2(AbstractSensor):
 
@@ -31,7 +33,8 @@ class CO2(AbstractSensor):
     """
     def update(self):
         if self.pulses_changed:
-            self.value = self.high_pulse, self.low_pulse, self._pulses_to_concentration(self.high_pulse, self.low_pulse)
+            if self.high_pulse >= MIN_PULSE_DURATION_US and self.low_pulse >= MIN_PULSE_DURATION_US:
+                self.value = self.high_pulse, self.low_pulse, self._pulses_to_concentration(self.high_pulse, self.low_pulse)
             self.pulses_changed = False
         else:
             self.value = None

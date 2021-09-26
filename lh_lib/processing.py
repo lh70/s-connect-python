@@ -76,8 +76,7 @@ class NoOutputProcess:
             if not pipe.process_out.seen:
                 pipe.process_out.build_distribution(assignment_id, distribution, assignment_order)
 
-        if self.device not in assignment_order:
-            assignment_order.append(self.device)
+        self.insert_device_into_assignment_order(assignment_order)
 
         distribution[self.device.id]['processing'].append({'class': type(self).__name__, 'kwargs': self.kwargs})
 
@@ -88,6 +87,36 @@ class NoOutputProcess:
                 pipe.process_in.build_distribution(assignment_id, distribution, assignment_order)
 
         return distribution, assignment_order
+
+    # future idea use topological sorting
+    def insert_device_into_assignment_order(self, assignment_order):
+        devices = self.get_downwards_devices(set())
+
+        if self.device in devices:
+            devices.remove(self.device)
+
+        if self.device in assignment_order:
+            insert_at = assignment_order.index(self.device)
+        else:
+            insert_at = len(assignment_order)
+
+        for idx, device in enumerate(assignment_order):
+            if device in devices and idx < insert_at:
+                insert_at = idx
+
+        if self.device not in assignment_order:
+            assignment_order.insert(insert_at, self.device)
+        elif insert_at < assignment_order.index(self.device):
+            assignment_order.remove(self.device)
+            assignment_order.insert(insert_at, self.device)
+
+    def get_downwards_devices(self, devices):
+        devices.add(self.device)
+            
+        for pipe in self.output_pipelines:
+            pipe.process_in.get_downwards_devices(devices)
+
+        return devices
 
 
 class SingleOutputProcess(NoOutputProcess):

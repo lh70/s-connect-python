@@ -12,7 +12,6 @@ from lh_lib.processing import Device
 
 from testing import monitor, print_pipe
 
-
 esp_32_1 = Device('192.168.2.177', 8090, 100)
 esp_32_2 = Device('192.168.2.146', 8090, 100)
 esp_32_3 = Device('192.168.2.182', 8090, 100)
@@ -24,9 +23,9 @@ pc_local_2 = Device('192.168.2.163', 8092, 100)
 pc_local_3 = Device('192.168.2.163', 8093, 100)
 pc_local_4 = Device('192.168.2.163', 8094, 100)
 
-raw_co2 = SensorRead(esp_32_3, 'co2')
-raw_dht11 = SensorRead(esp_32_3, 'dht11')
-raw_ultrasonic = SensorRead(esp_32_3, 'ultrasonic')
+raw_co2 = SensorRead(esp_32_2, 'co2')
+raw_dht11 = SensorRead(esp_32_2, 'dht11')
+raw_ultrasonic = SensorRead(esp_32_2, 'ultrasonic')
 raw_rotary_encoder = SensorRead(esp_32_3, 'rotary_encoder')
 raw_button = SensorRead(esp_32_3, 'button')
 
@@ -58,6 +57,7 @@ alarm_ser = Join(pc_local_0, joined.out0, ultrasonic_bool.out0, eval_str='x or y
 output = PrintQueue(pc_local_0, alarm_ser.out0, time_frame=100)
 
 distribution, assignment_order = output.build_distribution('0')
+
 
 for device in assignment_order:
     device.remove_assignment('0')

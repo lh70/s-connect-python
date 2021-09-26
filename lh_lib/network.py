@@ -11,7 +11,7 @@ MAX_UNSIGNED_INT = 4294967295
 # maximum receive network buffer
 MAX_RECEIVE_BYTES = 4096
 # acknowledgement timeout
-ACKNOWLEDGEMENT_TIMEOUT_MS = 2000
+ACKNOWLEDGEMENT_TIMEOUT_MS = 7000
 # full message receive timeout
 RECEIVE_TIMEOUT_MS = 3000
 
