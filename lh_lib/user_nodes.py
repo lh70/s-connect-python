@@ -23,11 +23,11 @@ IMPORTANT: eval() is used extensively on the generic functions. Micropython does
 """
 import os
 
-from lh_lib.processing import NoOutputProcess, SingleOutputProcess, DualOutputProcess
+from lh_lib.user_distribution import NoOutputNode, SingleOutputNode, DualOutputNode
 from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
 
 
-class SensorRead(SingleOutputProcess):
+class SensorRead(SingleOutputNode):
 
     def __init__(self, device, sensor):
         super().__init__(device, sensor=sensor)
@@ -38,7 +38,7 @@ class SensorRead(SingleOutputProcess):
             out0.append(sensor.value)
 
 
-class PrintQueue(NoOutputProcess):
+class PrintQueue(NoOutputNode):
 
     def __init__(self, device, in0, format_str='{}', time_frame=0, values_per_time_frame=0):
         super().__init__(device, in0=in0, format_str=format_str, time_frame=time_frame, values_per_time_frame=values_per_time_frame)
@@ -57,7 +57,7 @@ class PrintQueue(NoOutputProcess):
             storage['last_time_frame'] = ticks_ms()
 
 
-class PrintItems(NoOutputProcess):
+class PrintItems(NoOutputNode):
 
     def __init__(self, device, in0, format_str='{}', time_frame=0, values_per_time_frame=0):
         super().__init__(device, in0=in0, format_str=format_str, time_frame=time_frame, values_per_time_frame=values_per_time_frame)
@@ -84,7 +84,7 @@ class PrintItems(NoOutputProcess):
             storage['last_time_frame'] = ticks_ms()
 
 
-class PassThrough(SingleOutputProcess):
+class PassThrough(SingleOutputNode):
 
     def __init__(self, device, in0):
         super().__init__(device, in0=in0)
@@ -96,7 +96,7 @@ class PassThrough(SingleOutputProcess):
         in0.clear()
 
 
-class Map(SingleOutputProcess):
+class Map(SingleOutputNode):
 
     def __init__(self, device, in0, eval_str='x'):
         super().__init__(device, in0=in0, eval_str=eval_str)
@@ -108,7 +108,7 @@ class Map(SingleOutputProcess):
         in0.clear()
 
 
-class Filter(SingleOutputProcess):
+class Filter(SingleOutputNode):
 
     def __init__(self, device, in0, eval_str='x > 0'):
         super().__init__(device, in0=in0, eval_str=eval_str)
@@ -121,7 +121,7 @@ class Filter(SingleOutputProcess):
         in0.clear()
 
 
-class Join(SingleOutputProcess):
+class Join(SingleOutputNode):
 
     def __init__(self, device, in0, in1, eval_str='x + y'):
         super().__init__(device, in0=in0, in1=in1, eval_str=eval_str)
@@ -157,7 +157,7 @@ class Join(SingleOutputProcess):
         in1.clear()
 
 
-class Sum(SingleOutputProcess):
+class Sum(SingleOutputNode):
 
     def __init__(self, device, in0, time_frame=0):
         super().__init__(device, in0=in0, time_frame=time_frame)
@@ -187,7 +187,7 @@ class Sum(SingleOutputProcess):
         in0.clear()
 
 
-class Mean(SingleOutputProcess):
+class Mean(SingleOutputNode):
 
     def __init__(self, device, in0, time_frame=0):
         super().__init__(device, in0=in0, time_frame=time_frame)
@@ -218,7 +218,7 @@ class Mean(SingleOutputProcess):
         in0.clear()
 
 
-class Duplicate(DualOutputProcess):
+class Duplicate(DualOutputNode):
 
     def __init__(self, device, in0):
         super().__init__(device, in0=in0)
@@ -231,7 +231,7 @@ class Duplicate(DualOutputProcess):
         in0.clear()
 
 
-class ButtonFilter(SingleOutputProcess):
+class ButtonFilter(SingleOutputNode):
 
     def __init__(self, device, in0, flip_threshold=5, initial_state=False):
         super().__init__(device, in0=in0, flip_threshold=flip_threshold, initial_state=initial_state)
@@ -258,7 +258,7 @@ class ButtonFilter(SingleOutputProcess):
         in0.clear()
 
 
-class ButtonToSingleEmit(SingleOutputProcess):
+class ButtonToSingleEmit(SingleOutputNode):
 
     def __init__(self, device, in0):
         super().__init__(device, in0=in0)
@@ -281,7 +281,7 @@ class ButtonToSingleEmit(SingleOutputProcess):
         in0.clear()
 
 
-class ToggleState(SingleOutputProcess):
+class ToggleState(SingleOutputNode):
 
     def __init__(self, device, in0, eval_str="x > 0", initial_state=False):
         super().__init__(device, in0=in0, eval_str=eval_str, initial_state=initial_state)
@@ -300,7 +300,7 @@ class ToggleState(SingleOutputProcess):
         in0.clear()
 
 
-class ThroughputObserver(NoOutputProcess):
+class ThroughputObserver(NoOutputNode):
 
     def __init__(self, device, in0):
         super().__init__(device, in0=in0)
@@ -321,51 +321,7 @@ class ThroughputObserver(NoOutputProcess):
             storage['sum'] = 0
 
 
-class DelayObserver(NoOutputProcess):
-
-    def __init__(self, device, in0, in1):
-        super().__init__(device, in0=in0, in1=in1)
-
-    """
-    This Node requires the 1-in-1-out rule for all nodes in between in0 and in1,
-    which means for every input value all nodes must emit one output value.
-    Also, in0 must be first in process, as the delay is measured like time(v-in1) - time(v-in0).
-    """
-    @classmethod
-    def run(cls, in0, in1, storage):
-        if 'queue' not in storage:
-            storage['queue'] = []
-            storage['elem_delays'] = []
-            storage['time_delays'] = []
-
-        if len(in1) > (len(in0) + len(storage['queue'])):
-            os.system('cls' if os.name == 'nt' else 'clear')
-            print('Delay Observer\n\nERROR: receiving more output ({}) than input ({}) values'.format(len(in1), len(in0) + len(storage['queue'])))
-
-            storage['queue'] = []
-        else:
-            for _ in in0:
-                storage['queue'].append(ticks_ms())
-
-                if len(in1) > 0:
-                    storage['elem_delays'].append(len(storage['queue']))
-                    storage['time_delays'].append(ticks_ms_diff_to_current(storage['queue'].pop(0)))
-                    del in1[0]
-
-            for _ in in1:
-                storage['elem_delays'].append(len(storage['queue']))
-                storage['time_delays'].append(ticks_ms_diff_to_current(storage['queue'].pop(0)))
-
-            if len(storage['elem_delays']) >= 10:
-                os.system('cls' if os.name == 'nt' else 'clear')
-                print('Delay Observer\n\naverage items apart: {}\naverage time delay: {}'.format(sum(storage['elem_delays'][:10])/10, sum(storage['time_delays'][:10])/10))
-                del storage['elem_delays'][:10]
-                del storage['time_delays'][:10]
-        in0.clear()
-        in1.clear()
-
-
-class CaseStudyDelayObserver(NoOutputProcess):
+class CaseStudyDelayObserver(NoOutputNode):
 
     def __init__(self, device, in0, in1):
         super().__init__(device, in0=in0, in1=in1)
@@ -405,7 +361,7 @@ class CaseStudyDelayObserver(NoOutputProcess):
         in1.clear()
 
 
-class Monitor(NoOutputProcess):
+class Monitor(NoOutputNode):
 
     def __init__(self, device, in0, time_frame=100):
         super().__init__(device, in0=in0, time_frame=time_frame)
@@ -426,7 +382,7 @@ class Monitor(NoOutputProcess):
             storage['values'] = []
 
 
-class MonitorLatest(NoOutputProcess):
+class MonitorLatest(NoOutputNode):
     def __init__(self, device, in0):
         super().__init__(device, in0=in0)
 

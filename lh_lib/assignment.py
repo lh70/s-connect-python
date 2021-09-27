@@ -4,7 +4,7 @@ from lh_lib.network import Client
 from lh_lib.exceptions import AssignmentException
 from lh_lib.pipeline import InputPipeline, OutputPipeline, LocalPipeline
 
-import lh_lib.user_processes
+import lh_lib.user_nodes
 
 
 class GeneralAssignment:
@@ -23,7 +23,7 @@ class GeneralAssignment:
         # processing setup
         self.processing = setup_obj['processing']
         for proc in self.processing:
-            proc_cls = getattr(lh_lib.user_processes, proc['class'])
+            proc_cls = getattr(lh_lib.user_nodes, proc['class'])
             proc['run'] = proc_cls.run
             proc['kwargs']['storage'] = {}
             for kw, value in proc['kwargs'].items():

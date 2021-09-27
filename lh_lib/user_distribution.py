@@ -3,15 +3,15 @@ import re
 from lh_lib.network import Client
 
 
-class Pipeline:
+class _PipelineHelper:
 
     pipeline_counter = 0
 
     def __init__(self, process_out):
         self.seen = False
 
-        self.id = str(Pipeline.pipeline_counter)
-        Pipeline.pipeline_counter += 1
+        self.id = str(_PipelineHelper.pipeline_counter)
+        _PipelineHelper.pipeline_counter += 1
 
         self.process_in = None
         self.process_out = process_out
@@ -46,7 +46,7 @@ class Pipeline:
             }
 
 
-class NoOutputProcess:
+class NoOutputNode:
 
     def __init__(self, device, **kwargs):
         self.seen = False
@@ -119,20 +119,20 @@ class NoOutputProcess:
         return devices
 
 
-class SingleOutputProcess(NoOutputProcess):
+class SingleOutputNode(NoOutputNode):
 
     def __init__(self, device, **kwargs):
         super().__init__(device, **kwargs)
-        self.out0 = Pipeline(self)
+        self.out0 = _PipelineHelper(self)
         self.output_pipelines.append(self.out0)
         self.kwargs['out0'] = self.out0.id
 
 
-class DualOutputProcess(NoOutputProcess):
+class DualOutputNode(NoOutputNode):
     def __init__(self, device, **kwargs):
         super().__init__(device, **kwargs)
-        self.out0 = Pipeline(self)
-        self.out1 = Pipeline(self)
+        self.out0 = _PipelineHelper(self)
+        self.out1 = _PipelineHelper(self)
         self.output_pipelines.append(self.out0)
         self.output_pipelines.append(self.out1)
         self.kwargs['out0'] = self.out0.id

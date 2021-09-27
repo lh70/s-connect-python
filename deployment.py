@@ -27,7 +27,7 @@ import subprocess
 
 RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
 PRE_COMPILE = True
-NATIVE_CODE = False  # True currently not usable. Uses to much RAM on device.
+NATIVE_CODE = False  # True currently not usable. Uses to much RAM on device. Alternative: use the @micropython.native function decorator
 MPY_MARCH = 'xtensawin'
 
 
