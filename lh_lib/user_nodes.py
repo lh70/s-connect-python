@@ -25,8 +25,11 @@ import os
 
 from lh_lib.user_distribution import NoOutputNode, SingleOutputNode, DualOutputNode
 from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
+from lh_lib.logging import DataLogger
 
-
+"""
+Value Generating Nodes
+"""
 class SensorRead(SingleOutputNode):
 
     def __init__(self, device, sensor):
@@ -38,52 +41,9 @@ class SensorRead(SingleOutputNode):
             out0.append(sensor.value)
 
 
-class PrintQueue(NoOutputNode):
-
-    def __init__(self, device, in0, format_str='{}', time_frame=0, values_per_time_frame=0):
-        super().__init__(device, in0=in0, format_str=format_str, time_frame=time_frame, values_per_time_frame=values_per_time_frame)
-
-    @classmethod
-    def run(cls, in0, format_str, time_frame, values_per_time_frame, storage):
-        if 'last_time_frame' not in storage:
-            storage['last_time_frame'] = ticks_ms()
-
-        if time_frame is 0 and in0:
-            print(format_str.format(in0))
-            in0.clear()
-        elif time_frame is not 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
-            print(format_str.format(in0))
-            in0.clear()
-            storage['last_time_frame'] = ticks_ms()
-
-
-class PrintItems(NoOutputNode):
-
-    def __init__(self, device, in0, format_str='{}', time_frame=0, values_per_time_frame=0):
-        super().__init__(device, in0=in0, format_str=format_str, time_frame=time_frame, values_per_time_frame=values_per_time_frame)
-
-    @classmethod
-    def run(cls, in0, format_str, time_frame, values_per_time_frame, storage):
-        if 'last_time_frame' not in storage:
-            storage['last_time_frame'] = ticks_ms()
-
-        if time_frame is 0 and in0:
-            for x in in0:
-                if isinstance(x, (tuple, list)):
-                    print(format_str.format(*x))
-                else:
-                    print(format_str.format(x))
-            in0.clear()
-        elif time_frame is not 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
-            for x in in0:
-                if isinstance(x, (tuple, list)):
-                    print(format_str.format(*x))
-                else:
-                    print(format_str.format(x))
-            in0.clear()
-            storage['last_time_frame'] = ticks_ms()
-
-
+"""
+Standard Nodes
+"""
 class PassThrough(SingleOutputNode):
 
     def __init__(self, device, in0):
@@ -231,6 +191,55 @@ class Duplicate(DualOutputNode):
         in0.clear()
 
 
+class PrintQueue(NoOutputNode):
+
+    def __init__(self, device, in0, format_str='{}', time_frame=0, values_per_time_frame=0):
+        super().__init__(device, in0=in0, format_str=format_str, time_frame=time_frame, values_per_time_frame=values_per_time_frame)
+
+    @classmethod
+    def run(cls, in0, format_str, time_frame, values_per_time_frame, storage):
+        if 'last_time_frame' not in storage:
+            storage['last_time_frame'] = ticks_ms()
+
+        if time_frame is 0 and in0:
+            print(format_str.format(in0))
+            in0.clear()
+        elif time_frame is not 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
+            print(format_str.format(in0))
+            in0.clear()
+            storage['last_time_frame'] = ticks_ms()
+
+
+class PrintItems(NoOutputNode):
+
+    def __init__(self, device, in0, format_str='{}', time_frame=0, values_per_time_frame=0):
+        super().__init__(device, in0=in0, format_str=format_str, time_frame=time_frame, values_per_time_frame=values_per_time_frame)
+
+    @classmethod
+    def run(cls, in0, format_str, time_frame, values_per_time_frame, storage):
+        if 'last_time_frame' not in storage:
+            storage['last_time_frame'] = ticks_ms()
+
+        if time_frame is 0 and in0:
+            for x in in0:
+                if isinstance(x, (tuple, list)):
+                    print(format_str.format(*x))
+                else:
+                    print(format_str.format(x))
+            in0.clear()
+        elif time_frame is not 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
+            for x in in0:
+                if isinstance(x, (tuple, list)):
+                    print(format_str.format(*x))
+                else:
+                    print(format_str.format(x))
+            in0.clear()
+            storage['last_time_frame'] = ticks_ms()
+
+
+"""
+Specific Case Study Nodes
+"""
 class ButtonFilter(SingleOutputNode):
 
     def __init__(self, device, in0, flip_threshold=5, initial_state=False):
@@ -302,37 +311,46 @@ class ToggleState(SingleOutputNode):
 
 class ThroughputObserver(NoOutputNode):
 
-    def __init__(self, device, in0):
-        super().__init__(device, in0=in0)
+    def __init__(self, device, in0, filepath=False):
+        super().__init__(device, in0=in0, filepath=filepath)
 
     @classmethod
-    def run(cls, in0, storage):
+    def run(cls, in0, filepath, storage):
         if 'time' not in storage:
             storage['time'] = ticks_ms()
             storage['sum'] = 0
+            if filepath:
+                storage['file'] = DataLogger(filepath, data_plot=True, distance=1)
 
         storage['sum'] += len(in0)
         in0.clear()
 
         if ticks_ms_diff_to_current(storage['time']) >= 1000:
+            storage['time'] = ticks_ms()
+
             os.system('cls' if os.name == 'nt' else 'clear')
             print('Throughput Observer\n\ncurrent throughput: {} values/second'.format(storage['sum']))
-            storage['time'] = ticks_ms()
+
+            if filepath:
+                storage['file'].add(storage['sum'])
+
             storage['sum'] = 0
 
 
 class CaseStudyDelayObserver(NoOutputNode):
 
-    def __init__(self, device, in0, in1):
-        super().__init__(device, in0=in0, in1=in1)
+    def __init__(self, device, in0, in1, filepath=False):
+        super().__init__(device, in0=in0, in1=in1, filepath=filepath)
 
     @classmethod
-    def run(cls, in0, in1, storage):
+    def run(cls, in0, in1, filepath, storage):
         if 'latest_in0' not in storage:
             storage['latest_in0'] = False
             storage['latest_in1'] = False
             storage['queue'] = []
             storage['time_delays'] = []
+            if filepath:
+                storage['file'] = DataLogger(filepath)
 
             os.system('cls' if os.name == 'nt' else 'clear')
             print('Case Study Delay Observer\n\nInit')
@@ -355,6 +373,12 @@ class CaseStudyDelayObserver(NoOutputNode):
         if len(storage['time_delays']) > 0:
             os.system('cls' if os.name == 'nt' else 'clear')
             print('Case Study Delay Observer\n\ntime delay: {}, queue: {}'.format(storage['time_delays'], storage['queue']))
+
+            if filepath:
+                file = storage['file']
+                for delay in storage['time_delays']:
+                    file.add(delay)
+
             storage['time_delays'].clear()
 
         in0.clear()

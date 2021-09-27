@@ -1,6 +1,5 @@
 import lh_lib.logging
 from lh_lib.worker import Worker
-from lh_lib.logging import log
 from lh_lib.sensors.manage import SensorManager
 from lh_lib.sensors.esp32.dummy import Dummy
 from lh_lib.sensors.esp32.poti import Poti, ATT3_6V
