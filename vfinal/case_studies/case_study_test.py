@@ -1,7 +1,7 @@
 from lh_lib.user_nodes import SensorRead, PrintQueue, Join, Map, ButtonFilter, ButtonToSingleEmit, Duplicate, ToggleState
 from lh_lib.user_distribution import Device
 
-from lh_lib.user_nodes_utility import observe_throughput, CaseStudyDelayObserverBuilder
+from lh_lib.user_nodes_utility import observe_throughput, CaseStudyDelayObserverBuilder, monitor_latest, print_queue
 
 
 def get_distribution():
@@ -30,7 +30,7 @@ def get_distribution():
     raw_ultrasonic = observe_throughput(pc_observer_3,
                                         SensorRead(esp_32_2, 'ultrasonic'))
     raw_rotary_encoder = observe_throughput(pc_observer_4,
-                                            SensorRead(esp_32_3, 'rotary_encoder'))
+                                            SensorRead(esp_32_5, 'rotary_encoder'))
     raw_button = delay_observer.input(observe_throughput(pc_observer_5,
                                                          SensorRead(esp_32_4, 'button')))
 

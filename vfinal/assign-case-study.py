@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 
 try:
     from lh_lib.exceptions import AcknowledgementException
@@ -30,6 +31,7 @@ def run():
         raise Exception(f'unknown case study selector {sys.argv[1]}')
 
     distribution, assignment_order = get_distribution()
+    # print(json.dumps(distribution))
 
     if len(sys.argv) == 3:
         if sys.argv[2] == 'order':

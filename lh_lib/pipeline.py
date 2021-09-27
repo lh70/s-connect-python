@@ -103,6 +103,8 @@ class OutputPipeline(AbstractPipeline):
         self.time_frame = time_frame
         self.values_per_time_frame = values_per_time_frame
 
+        self.last_data_exchange = ticks_ms()  # reset because between object creation and activation can be more than 3 seconds
+
 
 class LocalPipeline(AbstractPipeline):
 

@@ -34,7 +34,7 @@ def monitor_latest(device, node):
     return dup
 
 
-def print_queue(device, node, time_frame=100):
+def print_queue(device, node, time_frame=1000):
     dup = Duplicate(node.device, node.out0)
-    PrintQueue(device, dup.out1, time_frame)
+    PrintQueue(device, dup.out1, time_frame=time_frame)
     return dup

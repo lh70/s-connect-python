@@ -4,7 +4,7 @@
 #  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 $worker_script_path = "$PSScriptRoot/run-desktop-worker.py"
 
-invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8090'; python $worker_script_path 8090;}"
+invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8090'; python $worker_script_path;}"
 invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8100'; python $worker_script_path 8100;}"
 invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8101'; python $worker_script_path 8101;}"
 invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8102'; python $worker_script_path 8102;}"
