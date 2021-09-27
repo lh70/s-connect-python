@@ -32,33 +32,33 @@ def get_distribution():
     raw_rotary_encoder = observe_throughput(pc_observer_4,
                                             SensorRead(esp_32_4, 'rotary_encoder'))
     raw_button = delay_observer.input(observe_throughput(pc_observer_5,
-                                                         SensorRead(esp_32_5, 'button')))
+                                                         SensorRead(esp_32_4, 'button')))
 
-    selection_int = Map(pc_local, raw_rotary_encoder.out0, eval_str='int(x/2) % 3')
+    selection_int = Map(esp_32_5, raw_rotary_encoder.out0, eval_str='int(x/2) % 3')
 
-    button_filtered = ButtonFilter(pc_local, raw_button.out0, flip_threshold=1)
-    button_single_emit = ButtonToSingleEmit(pc_local, button_filtered.out0)
+    button_filtered = ButtonFilter(esp_32_5, raw_button.out0, flip_threshold=1)
+    button_single_emit = ButtonToSingleEmit(esp_32_5, button_filtered.out0)
 
-    joined_selection = Join(pc_local, selection_int.out0, button_single_emit.out0, eval_str='(x, y)')
+    joined_selection = Join(esp_32_5, selection_int.out0, button_single_emit.out0, eval_str='(x, y)')
 
-    duplicator_0 = Duplicate(pc_local, joined_selection.out0)
-    duplicator_1 = Duplicate(pc_local, duplicator_0.out0)
+    duplicator_0 = Duplicate(esp_32_5, joined_selection.out0)
+    duplicator_1 = Duplicate(esp_32_5, duplicator_0.out0)
 
-    co2_toggle = ToggleState(pc_local, duplicator_0.out1, eval_str='x[0]==0 and x[1]', initial_state=True)
-    temperature_toggle = ToggleState(pc_local, duplicator_1.out0, eval_str='x[0]==1 and x[1]', initial_state=True)
-    distance_toggle = ToggleState(pc_local, duplicator_1.out1, eval_str='x[0]==2 and x[1]', initial_state=True)
+    co2_toggle = ToggleState(esp_32_5, duplicator_0.out1, eval_str='x[0]==0 and x[1]', initial_state=True)
+    temperature_toggle = ToggleState(esp_32_5, duplicator_1.out0, eval_str='x[0]==1 and x[1]', initial_state=True)
+    distance_toggle = ToggleState(esp_32_5, duplicator_1.out1, eval_str='x[0]==2 and x[1]', initial_state=True)
 
-    co2_filtered = Map(pc_local, raw_co2.out0, eval_str='x[2] > 0')
-    temperature_filtered = Map(pc_local, raw_dht11.out0, eval_str='x[0] > 45')
-    distance_filtered = Map(pc_local, raw_ultrasonic.out0, eval_str='x[0] is not -1 and x[1] < 10')
+    co2_filtered = Map(esp_32_5, raw_co2.out0, eval_str='x[2] > 0')
+    temperature_filtered = Map(esp_32_5, raw_dht11.out0, eval_str='x[0] > 45')
+    distance_filtered = Map(esp_32_5, raw_ultrasonic.out0, eval_str='x[0] is not -1 and x[1] < 10')
 
-    co2_bool = Join(pc_local, co2_toggle.out0, co2_filtered.out0, eval_str='y if x else False')
-    dht11_bool = Join(pc_local, temperature_toggle.out0, temperature_filtered.out0, eval_str='y if x else False')
-    ultrasonic_bool = Join(pc_local, distance_toggle.out0, distance_filtered.out0, eval_str='False if x else False')  # y if x else False
+    co2_bool = Join(esp_32_5, co2_toggle.out0, co2_filtered.out0, eval_str='y if x else False')
+    dht11_bool = Join(esp_32_5, temperature_toggle.out0, temperature_filtered.out0, eval_str='y if x else False')
+    ultrasonic_bool = Join(esp_32_5, distance_toggle.out0, distance_filtered.out0, eval_str='False if x else False')  # y if x else False
 
-    joined = Join(pc_local, co2_bool.out0, dht11_bool.out0, eval_str='x or y')
+    joined = Join(esp_32_5, co2_bool.out0, dht11_bool.out0, eval_str='x or y')
     alarm_ser = delay_observer.output(
-        Join(pc_local, joined.out0, ultrasonic_bool.out0, eval_str='x or y'))
+        Join(esp_32_5, joined.out0, ultrasonic_bool.out0, eval_str='x or y'))
 
     output = PrintQueue(pc_local, alarm_ser.out0, time_frame=100)
 

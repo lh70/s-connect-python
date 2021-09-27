@@ -26,13 +26,13 @@ def get_distribution():
     raw_co2 = observe_throughput(pc_observer_1,
                                  SensorRead(esp_32_1, 'co2'))
     raw_dht11 = observe_throughput(pc_observer_2,
-                                   SensorRead(esp_32_1, 'dht11'))
+                                   SensorRead(esp_32_2, 'dht11'))
     raw_ultrasonic = observe_throughput(pc_observer_3,
-                                        SensorRead(esp_32_1, 'ultrasonic'))
+                                        SensorRead(esp_32_3, 'ultrasonic'))
     raw_rotary_encoder = observe_throughput(pc_observer_4,
-                                            SensorRead(esp_32_2, 'rotary_encoder'))
+                                            SensorRead(esp_32_4, 'rotary_encoder'))
     raw_button = delay_observer.input(observe_throughput(pc_observer_5,
-                                                         SensorRead(esp_32_2, 'button')))
+                                                         SensorRead(esp_32_4, 'button')))
 
     selection_int = Map(pc_local, raw_rotary_encoder.out0, eval_str='int(x/2) % 3')
 
