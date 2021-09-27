@@ -128,7 +128,7 @@ def run():
     print(f'changed working directory to: {os.getcwd()}')
 
     # check if device is reachable
-    print('checking device access (with "mpremote fs ls")...', end='')
+    print('checking device access (with "mpremote fs ls")...', end='', flush=True)
     subprocess.run(['mpremote', 'fs', 'ls'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
     print('check')
 
