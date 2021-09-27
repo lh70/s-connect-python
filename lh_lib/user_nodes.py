@@ -356,17 +356,24 @@ class CaseStudyDelayObserver(NoOutputNode):
             print('Case Study Delay Observer\n\nInit')
 
         for i in in0:
-            if i and not storage['latest_in0']:
-                storage['queue'].append(ticks_ms())
+            if i and not storage['latest_in0']:  # on rising edge <==> False->True <==> button pressed
+                if len(storage['queue']) == 0 or ticks_ms_diff_to_current(storage['queue'][-1]) > 1:  # filter flickering
+                    storage['queue'].append(ticks_ms())
             storage['latest_in0'] = i
 
         for i in in1:
-            if i != storage['latest_in1']:
-                if len(storage['queue']) > 0:
+            if i != storage['latest_in1']:  # on flipped state <==> True->False or False->True
+                if len(storage['queue']) > 0:  # should be always true at this moment, if not: ignore this flip
+                    '''
+                    # old approach
                     delay = ticks_ms_diff_to_current(storage['queue'].pop(0))
-                    while delay < 2000 and len(storage['queue']) > 0:
+                    while delay > 1000 and len(storage['queue']) > 0:  # case study presses button about every 2 seconds. if flickering got through, it should not pass this test
                         delay = ticks_ms_diff_to_current(storage['queue'].pop(0))
                     storage['time_delays'].append(delay)
+                    '''
+                    # new approach. delay is < 2 seconds, so only one item should be in list, every other item is flickering, so take the first and delete the others
+                    storage['time_delays'].append(ticks_ms_diff_to_current(storage['queue'][0]))
+                    storage['queue'].clear()
 
             storage['latest_in1'] = i
 
