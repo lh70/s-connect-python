@@ -20,6 +20,7 @@ def get_distribution():
     pc_observer_3 = Device('192.168.2.163', 8103, time_frame)
     pc_observer_4 = Device('192.168.2.163', 8104, time_frame)
     pc_observer_5 = Device('192.168.2.163', 8105, time_frame)
+    pc_observer_6 = Device('192.168.2.163', 8106, time_frame)
 
     delay_observer = CaseStudyDelayObserverBuilder(pc_observer_0)
 
@@ -57,8 +58,8 @@ def get_distribution():
     ultrasonic_bool = Join(pc_local, distance_toggle.out0, distance_filtered.out0, eval_str='False if x else False')  # y if x else False
 
     joined = Join(pc_local, co2_bool.out0, dht11_bool.out0, eval_str='x or y')
-    alarm_ser = delay_observer.output(
-        Join(pc_local, joined.out0, ultrasonic_bool.out0, eval_str='x or y'))
+    alarm_ser = delay_observer.output(observe_throughput(pc_observer_6,
+                                                         Join(pc_local, joined.out0, ultrasonic_bool.out0, eval_str='x or y'), 'D:/temp/total.log'))
 
     output = PrintQueue(pc_local, alarm_ser.out0, time_frame=100)
 

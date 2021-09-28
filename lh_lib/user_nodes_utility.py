@@ -6,16 +6,17 @@ Only SingleOutputNodes are currently observable
 """
 
 
-def observe_throughput(device, node):
+def observe_throughput(device, node, filepath=False):
     dup = Duplicate(node.device, node.out0)
-    ThroughputObserver(device, dup.out1)
+    ThroughputObserver(device, dup.out1, filepath)
     return dup
 
 
 class CaseStudyDelayObserverBuilder:
 
-    def __init__(self, device):
+    def __init__(self, device, filepath=False):
         self.device = device
+        self.filepath = filepath
         self.dup = None
 
     def input(self, node):
@@ -24,7 +25,7 @@ class CaseStudyDelayObserverBuilder:
 
     def output(self, node):
         dup_2 = Duplicate(node.device, node.out0)
-        CaseStudyDelayObserver(self.device, self.dup.out1, dup_2.out1)
+        CaseStudyDelayObserver(self.device, self.dup.out1, dup_2.out1, self.filepath)
         return dup_2
 
 

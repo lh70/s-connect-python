@@ -32,13 +32,20 @@ Value Generating Nodes
 """
 class SensorRead(SingleOutputNode):
 
-    def __init__(self, device, sensor):
-        super().__init__(device, sensor=sensor)
+    def __init__(self, device, sensor, read_delay_ms=0):
+        super().__init__(device, sensor=sensor, read_delay_ms=read_delay_ms)
 
     @classmethod
-    def run(cls, out0, sensor, storage):
+    def run(cls, out0, sensor, read_delay_ms, storage):
+        if 'last_valid' not in storage:
+            storage['last_valid'] = None
+            storage['last_read'] = 0
+
         if sensor.value is not None:
-            out0.append(sensor.value)
+            storage['last_valid'] = sensor.value
+
+        if ticks_ms_diff_to_current(storage['last_read']) > read_delay_ms:
+            out0.append(storage['last_valid'])
 
 
 """
@@ -357,7 +364,7 @@ class CaseStudyDelayObserver(NoOutputNode):
 
         for i in in0:
             if i and not storage['latest_in0']:  # on rising edge <==> False->True <==> button pressed
-                if len(storage['queue']) == 0 or ticks_ms_diff_to_current(storage['queue'][-1]) > 1:  # filter flickering
+                if len(storage['queue']) == 0 or ticks_ms_diff_to_current(storage['queue'][-1]) > 10:  # filter flickering
                     storage['queue'].append(ticks_ms())
             storage['latest_in0'] = i
 

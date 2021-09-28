@@ -20,19 +20,20 @@ def get_distribution():
     pc_observer_3 = Device('192.168.2.163', 8103, time_frame)
     pc_observer_4 = Device('192.168.2.163', 8104, time_frame)
     pc_observer_5 = Device('192.168.2.163', 8105, time_frame)
+    pc_observer_6 = Device('192.168.2.163', 8106, time_frame)
 
-    delay_observer = CaseStudyDelayObserverBuilder(pc_observer_0)
+    delay_observer = CaseStudyDelayObserverBuilder(pc_observer_0, 'D:/temp/delay.log')
 
     raw_co2 = observe_throughput(pc_observer_1,
-                                 SensorRead(esp_32_1, 'co2'))
+                                 SensorRead(esp_32_1, 'co2'), 'D:/temp/co2.log')
     raw_dht11 = observe_throughput(pc_observer_2,
-                                   SensorRead(esp_32_2, 'dht11'))
+                                   SensorRead(esp_32_2, 'dht11'), 'D:/temp/dht11.log')
     raw_ultrasonic = observe_throughput(pc_observer_3,
-                                        SensorRead(esp_32_3, 'ultrasonic'))
+                                        SensorRead(esp_32_3, 'ultrasonic'), 'D:/temp/ultrasonic.log')
     raw_rotary_encoder = observe_throughput(pc_observer_4,
-                                            SensorRead(esp_32_4, 'rotary_encoder'))
+                                            SensorRead(esp_32_4, 'rotary_encoder'), 'D:/temp/rotary_encoder.log')
     raw_button = delay_observer.input(observe_throughput(pc_observer_5,
-                                                         SensorRead(esp_32_4, 'button')))
+                                                         SensorRead(esp_32_4, 'button'), 'D:/temp/button.log'))
 
     selection_int = Map(pc_local, raw_rotary_encoder.out0, eval_str='int(x/2) % 3')
 
@@ -57,8 +58,8 @@ def get_distribution():
     ultrasonic_bool = Join(pc_local, distance_toggle.out0, distance_filtered.out0, eval_str='False if x else False')  # y if x else False
 
     joined = Join(pc_local, co2_bool.out0, dht11_bool.out0, eval_str='x or y')
-    alarm_ser = delay_observer.output(
-        Join(pc_local, joined.out0, ultrasonic_bool.out0, eval_str='x or y'))
+    alarm_ser = delay_observer.output(observe_throughput(pc_observer_6,
+                                                         Join(pc_local, joined.out0, ultrasonic_bool.out0, eval_str='x or y'), 'D:/temp/total.log'))
 
     output = PrintQueue(pc_local, alarm_ser.out0, time_frame=100)
 

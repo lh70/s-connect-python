@@ -20,6 +20,7 @@ def get_distribution():
     pc_observer_3 = Device('192.168.2.163', 8103, time_frame)
     pc_observer_4 = Device('192.168.2.163', 8104, time_frame)
     pc_observer_5 = Device('192.168.2.163', 8105, time_frame)
+    pc_observer_6 = Device('192.168.2.163', 8106, time_frame)
 
     delay_observer = CaseStudyDelayObserverBuilder(pc_observer_0)
 
@@ -30,16 +31,16 @@ def get_distribution():
     raw_ultrasonic = observe_throughput(pc_observer_3,
                                         SensorRead(esp_32_5, 'ultrasonic'))
     raw_rotary_encoder = observe_throughput(pc_observer_4,
-                                            SensorRead(esp_32_2, 'rotary_encoder'))
+                                            SensorRead(esp_32_1, 'rotary_encoder'))
     raw_button = delay_observer.input(observe_throughput(pc_observer_5,
-                                                         SensorRead(esp_32_1, 'button')))
+                                                         SensorRead(esp_32_2, 'button')))
 
-    selection_int = Map(esp_32_2, raw_rotary_encoder.out0, eval_str='int(x/2) % 3')
+    selection_int = Map(esp_32_1, raw_rotary_encoder.out0, eval_str='int(x/2) % 3')
 
-    button_filtered = ButtonFilter(esp_32_1, raw_button.out0, flip_threshold=1)
-    button_single_emit = ButtonToSingleEmit(esp_32_1, button_filtered.out0)
+    button_filtered = ButtonFilter(esp_32_2, raw_button.out0, flip_threshold=1)
+    button_single_emit = ButtonToSingleEmit(esp_32_2, button_filtered.out0)
 
-    joined_selection = Join(esp_32_2, selection_int.out0, button_single_emit.out0, eval_str='(x, y)')
+    joined_selection = Join(esp_32_1, selection_int.out0, button_single_emit.out0, eval_str='(x, y)')
 
     duplicator_0 = Duplicate(esp_32_3, joined_selection.out0)
     duplicator_1 = Duplicate(esp_32_4, duplicator_0.out0)
@@ -57,8 +58,8 @@ def get_distribution():
     ultrasonic_bool = Join(esp_32_5, distance_toggle.out0, distance_filtered.out0, eval_str='False if x else False')  # y if x else False
 
     joined = Join(esp_32_4, co2_bool.out0, dht11_bool.out0, eval_str='x or y')
-    alarm_ser = delay_observer.output(
-        Join(esp_32_5, joined.out0, ultrasonic_bool.out0, eval_str='x or y'))
+    alarm_ser = delay_observer.output(observe_throughput(pc_observer_6,
+                                                         Join(esp_32_5, joined.out0, ultrasonic_bool.out0, eval_str='x or y'), 'D:/temp/total.log'))
 
     output = PrintQueue(pc_local, alarm_ser.out0, time_frame=100)
 

@@ -11,3 +11,4 @@ invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path 
 invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8103'; python $worker_script_path 8103;}"
 invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8104'; python $worker_script_path 8104;}"
 invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8105'; python $worker_script_path 8105;}"
+invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8106'; python $worker_script_path 8106;}"
