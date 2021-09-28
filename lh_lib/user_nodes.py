@@ -45,6 +45,7 @@ class SensorRead(SingleOutputNode):
             storage['last_valid'] = sensor.value
 
         if ticks_ms_diff_to_current(storage['last_read']) > read_delay_ms:
+            storage['last_read'] = ticks_ms()
             out0.append(storage['last_valid'])
 
 
