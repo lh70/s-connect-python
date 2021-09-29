@@ -1,5 +1,5 @@
 
-DATA_LOG_PATH = 'D:/temp/' + 'CS6_SendFixed_100ms_JoinDupFilter' + '/'
+DATA_LOG_PATH = 'D:/temp/' + 'CS3_SendFixed_100ms_JoinDupFilter' + '/'
 
 
 filepaths = [DATA_LOG_PATH + f for f in ('delay.log', 'button.log', 'co2.log', 'dht11.log', 'rotary_encoder.log', 'ultrasonic.log', 'total.log')]

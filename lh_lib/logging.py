@@ -1,5 +1,3 @@
-import os
-
 from lh_lib.time import ticks_ms
 
 ACTIVE = True
