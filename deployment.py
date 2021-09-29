@@ -58,7 +58,7 @@ class Flags:
 
     @classmethod
     def save_to_device(cls):
-        print('saving new build/flags.json to :flags.json')
+        print('saving new build/flags.json to device :flags.json')
         with open('build/flags.json', 'w') as f:
             json.dump({'PRE_COMPILE': PRE_COMPILE, 'NATIVE_CODE': NATIVE_CODE, 'MPY_MARCH': MPY_MARCH}, f)
         subprocess.run(['mpremote', 'fs', 'cp', 'build/flags.json', ':flags.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
@@ -113,7 +113,7 @@ class MTimes:
                 self.struct = json.load(f)
 
     def save_to_device(self):
-        print(f'saving file build/m_times.json to device :m_times.json')
+        print(f'saving new build/m_times.json to device :m_times.json')
         with open('build/m_times.json', 'w') as f:
             json.dump(self.struct['build'], f)  # we want struct relative to lh_lib
         subprocess.run(['mpremote', 'fs', 'cp', f'build/m_times.json', f':m_times.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)

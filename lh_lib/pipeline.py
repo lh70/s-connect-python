@@ -45,8 +45,10 @@ class AbstractPipeline:
             obj = self.conn.recv()
             self.last_data_exchange = ticks_ms()
         except NoReadableDataException:
-            if ticks_ms_diff_to_current(self.last_data_exchange) > INPUT_PIPELINE_TIMEOUT_MS:
-                self.invalidate("no data received for more than {} milliseconds".format(INPUT_PIPELINE_TIMEOUT_MS))
+            pass
+
+            # if ticks_ms_diff_to_current(self.last_data_exchange) > INPUT_PIPELINE_TIMEOUT_MS:
+            #     self.invalidate("no data received for more than {} milliseconds".format(INPUT_PIPELINE_TIMEOUT_MS))
         except ConnectionClosedDownException as e:
             self.invalidate("connection closed down: {}".format(e))
         except InvalidDataException as e:
@@ -65,7 +67,9 @@ class AbstractPipeline:
             self.buffer_out.clear()
             return
 
-        if (self.time_frame is 0 and self.buffer_out) or (self.time_frame is not 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
+        # if self.buffer_out and (self.time_frame is 0 or ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
+
+        if (self.buffer_out and self.time_frame is 0) or (self.time_frame is not 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
             try:
                 self.conn.send(self.buffer_out)
                 # log("sending message | len: {}", len(self.buffer_out))

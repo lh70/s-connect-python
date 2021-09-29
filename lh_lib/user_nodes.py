@@ -41,12 +41,16 @@ class SensorRead(SingleOutputNode):
             storage['last_valid'] = None
             storage['last_read'] = 0
 
-        if sensor.value is not None:
-            storage['last_valid'] = sensor.value
+        if read_delay_ms == 0:  # old behaviour. read is faster than the sensor can provide values.
+            if sensor.value is not None:
+                out0.append(sensor.value)
+        else:  # new behaviour. sensor is faster than the framework can process the values further down the line.
+            if sensor.value is not None:
+                storage['last_valid'] = sensor.value
 
-        if ticks_ms_diff_to_current(storage['last_read']) > read_delay_ms:
-            storage['last_read'] = ticks_ms()
-            out0.append(storage['last_valid'])
+            if ticks_ms_diff_to_current(storage['last_read']) > read_delay_ms and storage['last_valid'] is not None:
+                storage['last_read'] = ticks_ms()
+                out0.append(storage['last_valid'])
 
 
 """
@@ -96,30 +100,52 @@ class Join(SingleOutputNode):
 
     @classmethod
     def run(cls, in0, in1, out0, eval_str, storage):
-        if 'last_in0' not in storage:
-            storage['last_in0'] = None
-            storage['last_in1'] = None
+        if 'latest_x' not in storage:
+            storage['latest_x'] = None
+            storage['latest_y'] = None
+            storage['last_z'] = None
 
-        if len(in0) > 0:
-            storage['last_in0'] = in0[-1]
-        if len(in1) > 0:
-            storage['last_in1'] = in1[-1]
-        if len(in0) == 0 and storage['last_in1'] is None:
-            in1.clear()
-            return
-        if len(in1) == 0 and storage['last_in0'] is None:
-            in0.clear()
-            return
+        length = len(in0) if len(in0) > len(in1) else len(in1)
+        for i in range(length):
+            x = in0[i] if i < len(in0) else storage['latest_x']
+            y = in1[i] if i < len(in1) else storage['latest_y']
 
-        for x, y in zip(in0, in1):
-            out0.append(eval(eval_str, {}, {'x': x, 'y': y}))
+            if x is not None and y is not None:
+                out0.append(eval(eval_str, {}, {'x': x, 'y': y}))
 
-        if len(in0) < len(in1):
-            for y in in1[len(in0):]:
-                out0.append(eval(eval_str, {}, {'x': storage['last_in0'], 'y': y}))
-        else:
-            for x in in0[len(in1):]:
-                out0.append(eval(eval_str, {}, {'x': x, 'y': storage['last_in1']}))
+            storage['latest_x'] = x
+            storage['latest_y'] = y
+
+        in0.clear()
+        in1.clear()
+
+
+class JoinWithDupFilter(SingleOutputNode):
+
+    def __init__(self, device, in0, in1, eval_str='x + y'):
+        super().__init__(device, in0=in0, in1=in1, eval_str=eval_str)
+
+    @classmethod
+    def run(cls, in0, in1, out0, eval_str, storage):
+        if 'latest_x' not in storage:
+            storage['latest_x'] = None
+            storage['latest_y'] = None
+            storage['last_z'] = None
+
+        length = len(in0) if len(in0) > len(in1) else len(in1)
+        for i in range(length):
+            x = in0[i] if i < len(in0) else storage['latest_x']
+            y = in1[i] if i < len(in1) else storage['latest_y']
+
+            if x is not None and y is not None:
+                z = eval(eval_str, {}, {'x': x, 'y': y})
+
+                if z != storage['last_z']:
+                    out0.append(z)
+                    storage['last_z'] = z
+
+            storage['latest_x'] = x
+            storage['latest_y'] = y
 
         in0.clear()
         in1.clear()
@@ -328,7 +354,7 @@ class ThroughputObserver(NoOutputNode):
             storage['time'] = ticks_ms()
             storage['sum'] = 0
             if filepath:
-                storage['file'] = DataLogger(filepath, data_plot=True, distance=1)
+                storage['file'] = DataLogger(filepath)
 
         storage['sum'] += len(in0)
         in0.clear()

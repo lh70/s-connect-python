@@ -1,5 +1,7 @@
 import os
 
+from lh_lib.time import ticks_ms
+
 ACTIVE = True
 
 
@@ -11,11 +13,7 @@ def log(msg, *objects):
 
 class DataLogger:
 
-    def __init__(self, fp, data_plot=False, distance=1):
-        self.data_plot = data_plot
-        self.distance = distance
-        self.data_point = 0
-
+    def __init__(self, fp):
         self.file = open(fp, mode='w')
 
     def __del__(self):
@@ -23,8 +21,4 @@ class DataLogger:
         self.file.close()
 
     def add(self, value):
-        if self.data_plot:
-            self.file.write('({},{})'.format(self.data_point * self.distance, value))
-            self.data_point += 1
-        else:
-            self.file.write('{} '.format(value))
+        self.file.write('({},{})'.format(ticks_ms(), value))

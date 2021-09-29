@@ -25,20 +25,20 @@ def get_distribution():
     delay_observer = CaseStudyDelayObserverBuilder(pc_observer_0, 'D:/temp/delay.log')
 
     raw_co2 = observe_throughput(pc_observer_1,
-                                 SensorRead(esp_32_1, 'co2'), 'D:/temp/co2.log')
+                                 SensorRead(esp_32_3, 'co2'), 'D:/temp/co2.log')
     raw_dht11 = observe_throughput(pc_observer_2,
-                                   SensorRead(esp_32_2, 'dht11'), 'D:/temp/dht11.log')
+                                   SensorRead(esp_32_4, 'dht11'), 'D:/temp/dht11.log')
     raw_ultrasonic = observe_throughput(pc_observer_3,
-                                        SensorRead(esp_32_3, 'ultrasonic'), 'D:/temp/ultrasonic.log')
+                                        SensorRead(esp_32_5, 'ultrasonic'), 'D:/temp/ultrasonic.log')
     raw_rotary_encoder = observe_throughput(pc_observer_4,
-                                            SensorRead(esp_32_4, 'rotary_encoder'), 'D:/temp/rotary_encoder.log')
+                                            SensorRead(esp_32_1, 'rotary_encoder'), 'D:/temp/rotary_encoder.log')
     raw_button = delay_observer.input(observe_throughput(pc_observer_5,
-                                                         SensorRead(esp_32_4, 'button'), 'D:/temp/button.log'))
+                                                         SensorRead(esp_32_2, 'button'), 'D:/temp/button.log'))
 
-    selection_int = Map(pc_local, raw_rotary_encoder.out0, eval_str='int(x/2) % 3')
+    selection_int = Map(esp_32_1, raw_rotary_encoder.out0, eval_str='int(x/2) % 3')
 
-    button_filtered = ButtonFilter(pc_local, raw_button.out0, flip_threshold=1)
-    button_single_emit = ButtonToSingleEmit(pc_local, button_filtered.out0)
+    button_filtered = ButtonFilter(esp_32_2, raw_button.out0, flip_threshold=1)
+    button_single_emit = ButtonToSingleEmit(esp_32_2, button_filtered.out0)
 
     joined_selection = Join(pc_local, selection_int.out0, button_single_emit.out0, eval_str='(x, y)')
 
@@ -49,9 +49,9 @@ def get_distribution():
     temperature_toggle = ToggleState(pc_local, duplicator_1.out0, eval_str='x[0]==1 and x[1]', initial_state=True)
     distance_toggle = ToggleState(pc_local, duplicator_1.out1, eval_str='x[0]==2 and x[1]', initial_state=True)
 
-    co2_filtered = Map(pc_local, raw_co2.out0, eval_str='x[2] > 0')
-    temperature_filtered = Map(pc_local, raw_dht11.out0, eval_str='x[0] > 45')
-    distance_filtered = Map(pc_local, raw_ultrasonic.out0, eval_str='x[0] is not -1 and x[1] < 10')
+    co2_filtered = Map(esp_32_3, raw_co2.out0, eval_str='x[2] > 0')
+    temperature_filtered = Map(esp_32_4, raw_dht11.out0, eval_str='x[0] > 45')
+    distance_filtered = Map(esp_32_5, raw_ultrasonic.out0, eval_str='x[0] is not -1 and x[1] < 10')
 
     co2_bool = Join(pc_local, co2_toggle.out0, co2_filtered.out0, eval_str='y if x else False')
     dht11_bool = Join(pc_local, temperature_toggle.out0, temperature_filtered.out0, eval_str='y if x else False')

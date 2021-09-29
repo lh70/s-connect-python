@@ -25,15 +25,15 @@ def get_distribution():
     delay_observer = CaseStudyDelayObserverBuilder(pc_observer_0, 'D:/temp/delay.log')
 
     raw_co2 = observe_throughput(pc_observer_1,
-                                 SensorRead(esp_32_1, 'co2'), 'D:/temp/co2.log')
+                                 SensorRead(esp_32_3, 'co2'), 'D:/temp/co2.log')
     raw_dht11 = observe_throughput(pc_observer_2,
-                                   SensorRead(esp_32_2, 'dht11'), 'D:/temp/dht11.log')
+                                   SensorRead(esp_32_4, 'dht11'), 'D:/temp/dht11.log')
     raw_ultrasonic = observe_throughput(pc_observer_3,
-                                        SensorRead(esp_32_3, 'ultrasonic'), 'D:/temp/ultrasonic.log')
+                                        SensorRead(esp_32_5, 'ultrasonic'), 'D:/temp/ultrasonic.log')
     raw_rotary_encoder = observe_throughput(pc_observer_4,
-                                            SensorRead(esp_32_4, 'rotary_encoder'), 'D:/temp/rotary_encoder.log')
+                                            SensorRead(esp_32_1, 'rotary_encoder'), 'D:/temp/rotary_encoder.log')
     raw_button = delay_observer.input(observe_throughput(pc_observer_5,
-                                                         SensorRead(esp_32_5, 'button'), 'D:/temp/button.log'))
+                                                         SensorRead(esp_32_2, 'button'), 'D:/temp/button.log'))
 
     selection_int = Map(pc_local, raw_rotary_encoder.out0, eval_str='int(x/2) % 3')
 
