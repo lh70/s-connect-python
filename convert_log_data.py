@@ -1,5 +1,5 @@
 
-DATA_LOG_PATH = 'D:/temp/' + 'CS3_SendFixed_100ms_JoinDupFilter' + '/'
+DATA_LOG_PATH = 'D:/temp/' + 'CS3_SendVariable_100ms_JoinNoFilter' + '/'
 
 
 filepaths = [DATA_LOG_PATH + f for f in ('delay.log', 'button.log', 'co2.log', 'dht11.log', 'rotary_encoder.log', 'ultrasonic.log', 'total.log')]
@@ -25,7 +25,7 @@ for idx, fp in enumerate(filepaths):
     for t in (i for i in tuples if i):
         ts, val = t.split(',')
 
-        converted += f'({round((float(ts)-first_ts)/1000)},{val})'
+        converted += f'{round((float(ts)-first_ts)/1000)} {val}\n'
 
     with open(converted_filepaths[idx], mode='w') as f:
         f.write(converted)

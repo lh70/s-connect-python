@@ -13,20 +13,12 @@ def run():
     if len(sys.argv) < 2:
         raise Exception('please provide a case study selector!')
 
-    if sys.argv[1] == 'test':
-        from case_studies.case_study_test import get_distribution
-    elif sys.argv[1] == '1':
+    if sys.argv[1] == '1':
         from case_studies.case_study_1 import get_distribution
     elif sys.argv[1] == '2':
         from case_studies.case_study_2 import get_distribution
     elif sys.argv[1] == '3':
         from case_studies.case_study_3 import get_distribution
-    elif sys.argv[1] == '4':
-        from case_studies.case_study_4 import get_distribution
-    elif sys.argv[1] == '5':
-        from case_studies.case_study_5 import get_distribution
-    elif sys.argv[1] == '6':
-        from case_studies.case_study_6 import get_distribution
     else:
         raise Exception(f'unknown case study selector {sys.argv[1]}')
 
