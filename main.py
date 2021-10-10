@@ -1,3 +1,13 @@
+"""
+NOT THE START SCRIPT FOR THE COMPUTER FRAMEWORK VERSION.
+
+Only works if transferred manually to the esp32 running
+micropython with for example: mpremote fs cp main.py :main.py
+
+Micropython supports two scripts automatically. boot.py is run first as a setup script. main.py is run second for
+program logic that should be run on micropython start (which is on poweron, or the EN button)
+"""
+
 import lh_lib.logging
 from lh_lib.worker import Worker
 from lh_lib.sensors.manage import SensorManager

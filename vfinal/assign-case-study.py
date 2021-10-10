@@ -1,3 +1,7 @@
+"""
+utility script to clear or assign case study assignments
+"""
+
 import os
 import sys
 import json

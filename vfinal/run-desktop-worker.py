@@ -1,3 +1,7 @@
+"""
+to be run on a console. starts the framework on a computer
+"""
+
 import os
 import sys
 

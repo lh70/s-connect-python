@@ -1,3 +1,7 @@
+"""
+utility script that generates valid pgfplots data from the raw observables data
+"""
+
 
 DATA_LOG_PATH = 'D:/temp/' + 'CS3_SendVariable_100ms_JoinNoFilter' + '/'
 

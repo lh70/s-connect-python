@@ -1,3 +1,6 @@
+"""
+generates high value cutoff filtered versions for case study 1 and 2 converted delay measurements
+"""
 
 DATA_PATHS = [
     'CS1_SendFixed_50ms_JoinDupFilter',

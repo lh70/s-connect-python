@@ -1,3 +1,7 @@
+"""
+to be run on an esp32 with mpremote run ... . Starts the framework on micropython.
+"""
+
 from lh_lib.worker import Worker
 from lh_lib.logging import log
 from lh_lib.sensors.manage import SensorManager

@@ -1,3 +1,7 @@
+"""
+the example computational setup and assignment
+"""
+
 import os
 import sys
 
@@ -5,10 +9,10 @@ try:
     from lh_lib.user_processes import SensorRead
 except ImportError:
     sys.path.insert(1, os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
-    from lh_lib.user_processes import SensorRead
+    from lh_lib.user_nodes import SensorRead
 
-from lh_lib.user_processes import SensorRead, PrintItems, Join
-from lh_lib.processing import Device
+from lh_lib.user_nodes import SensorRead, PrintItems, Join
+from lh_lib.user_distribution import Device
 
 
 esp_32 = Device('192.168.2.182', 8090)

@@ -1,3 +1,9 @@
+"""
+The script must be run on the esp32 and deletes all files in the filesystem on it.
+
+This was used as I once corrupted one esp32s filesystem and could not get the files removed with an external tool (mpremote)
+"""
+
 import os
 import sys
 

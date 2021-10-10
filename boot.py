@@ -2,7 +2,7 @@
 This is the MicroPython boot.py for this projects ESP32 chips.
 This script gets executed on every startup before main.py.
 
-We will activate WiFi station-connection as well as activate WebREPl (web cli)
+We will activate WiFi station-connection, but not WebREPl (web cli) as it is not reliable
 """
 
 import network
