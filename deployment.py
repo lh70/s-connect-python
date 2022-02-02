@@ -13,9 +13,9 @@ pip install esptool
 * download the latest GENERIC stable build from here: https://micropython.org/download/esp32/
 * hold the boot button while esptool is connecting on the following commands
 * if the esp32 is new with no prior micropython on it erase the flash with this command:
-esptool --chip esp32 --port COM3 erase_flash
+esptool.py --chip esp32 --port COM3 erase_flash
 * deploy the the micropython with this command: (replace port and .bin with your information)
-esptool --chip esp32 --port COM3 --baud 460800 write_flash -z 0x1000 esp32-20210618-v1.16.bin
+esptool.py --chip esp32 --port COM3 --baud 460800 write_flash -z 0x1000 esp32-20210618-v1.16.bin
 
 """
 import json
@@ -42,7 +42,7 @@ class Flags:
 
     def __init__(self):
         p = subprocess.run(['mpremote', 'fs', 'cp', ':flags.json', 'build/flags.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        if p.returncode is not 0:
+        if p.returncode != 0:
             print("could not retrieve flags.json. creating new one.")
             self.old_flags = {}
         else:
@@ -70,7 +70,7 @@ class MTimes:
         self.struct = init_struct or {}
 
     def contains(self, fp_parts):
-        return self.get_m_time(fp_parts) is not 0
+        return self.get_m_time(fp_parts) != 0
 
     def get_m_time(self, fp_parts):
         try:
@@ -105,7 +105,7 @@ class MTimes:
 
     def load_from_device(self):
         p = subprocess.run(['mpremote', 'fs', 'cp', ':m_times.json', 'build/m_times.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        if p.returncode is not 0:
+        if p.returncode != 0:
             print("could not retrieve device m_times.json. creating new one.")
         else:
             print("using existing m_times.json for reference.")
@@ -182,7 +182,7 @@ def run():
             while len(dir_parts) > 0:
                 dp = '/'.join(parts)
                 p = subprocess.run(['mpremote', 'fs', 'rmdir', dp], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                if p.returncode is 0:
+                if p.returncode == 0:
                     print(f'removing ghost directory {dp}')
                 else:
                     break

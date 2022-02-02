@@ -1,8 +1,8 @@
-import lh_lib.network
-
 from lh_lib.logging import log
 from lh_lib.assignment import GeneralAssignment
 from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, AssignmentException, ExpectedException, print_traceback
+from lh_lib.network_stack.server import Server
+
 
 PORT = 8090
 
@@ -10,7 +10,7 @@ PORT = 8090
 class Worker:
 
     def __init__(self, port, sensor_manager):
-        self._server = lh_lib.network.Server(port)
+        self._server = Server(port)
         self.sensor_manager = sensor_manager
 
         self.general_connections = []

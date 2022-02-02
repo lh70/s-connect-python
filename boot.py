@@ -6,7 +6,8 @@ We will activate WiFi station-connection, but not WebREPl (web cli) as it is not
 """
 
 import network
-import utime
+import time
+import machine
 # import webrepl
 
 
@@ -34,9 +35,9 @@ while not wlan.isconnected():
             print("Connecting...")
             wlan.connect(ssid, WIFI_CREDENTIALS[ssid], bssid=bssid)
 
-            start_time = utime.ticks_ms()
-            while (not wlan.isconnected()) and (utime.ticks_ms() - start_time < 10000):
-                utime.sleep_ms(500)
+            start_time = time.ticks_ms()
+            while (not wlan.isconnected()) and (time.ticks_ms() - start_time < 10000):
+                time.sleep_ms(500)
 
             if wlan.isconnected():
                 print(" SUCCESS")
@@ -48,9 +49,12 @@ while not wlan.isconnected():
 
     if not wlan.isconnected():
         print("No connectable network found. Retrying.")
-        utime.sleep_ms(20000)
+        time.sleep_ms(20000)
 
 print("network config: {}".format(wlan.ifconfig()))
+print("")
+print("adjusting machine frequency to max: 240MHz (default: 160MHz)")
+machine.freq(240000000)
 
 # webrepl.start(password=WEBREPL_PASSWORD)
 # print("webREPL started with password: {}".format(WEBREPL_PASSWORD))
