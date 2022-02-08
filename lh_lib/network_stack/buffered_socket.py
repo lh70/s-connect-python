@@ -56,3 +56,6 @@ class BufferedSocket:
                     raise ConnectionClosedDownException("0 bytes")
                 # update the message and length to send
                 self.output = self.output[bytes_sent:]
+
+    def close(self):
+        self._socket.close()

@@ -158,7 +158,7 @@ class Sum(SingleOutputNode):
 
     @classmethod
     def run(cls, in0, out0, time_frame, storage):
-        if time_frame is 0:
+        if time_frame == 0:
             if 'sum' not in storage:
                 storage['sum'] = 0
 
@@ -193,7 +193,7 @@ class Mean(SingleOutputNode):
             storage['size'] = 0
             storage['last_time_frame'] = ticks_ms()
 
-        if time_frame is 0:
+        if time_frame == 0:
             for val in in0:
                 storage['sum'] += val
                 storage['size'] += 1
@@ -235,10 +235,10 @@ class PrintQueue(NoOutputNode):
         if 'last_time_frame' not in storage:
             storage['last_time_frame'] = ticks_ms()
 
-        if time_frame is 0 and in0:
+        if time_frame == 0 and in0:
             print(format_str.format(in0))
             in0.clear()
-        elif time_frame is not 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
+        elif time_frame != 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
             print(format_str.format(in0))
             in0.clear()
             storage['last_time_frame'] = ticks_ms()
@@ -254,14 +254,14 @@ class PrintItems(NoOutputNode):
         if 'last_time_frame' not in storage:
             storage['last_time_frame'] = ticks_ms()
 
-        if time_frame is 0 and in0:
+        if time_frame == 0 and in0:
             for x in in0:
                 if isinstance(x, (tuple, list)):
                     print(format_str.format(*x))
                 else:
                     print(format_str.format(x))
             in0.clear()
-        elif time_frame is not 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
+        elif time_frame != 0 and ticks_ms_diff_to_current(storage['last_time_frame']) >= time_frame:
             for x in in0:
                 if isinstance(x, (tuple, list)):
                     print(format_str.format(*x))

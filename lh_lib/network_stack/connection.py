@@ -2,7 +2,7 @@ import json
 import struct
 
 from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
-from lh_lib.exceptions import NoReadableDataException, InvalidDataException, AcknowledgementException
+from lh_lib.exceptions import NoReadableDataException, InvalidDataException, AcknowledgementException, ConnectionClosedDownException
 from lh_lib.network_stack.buffered_socket import BufferedSocket
 
 # general maximum for an 32bit unsigned integer value
@@ -41,7 +41,7 @@ class Connection:
         self._buffered_socket.send(struct.pack(LENGTH_STRUCT, len(msg)))
         self._buffered_socket.send(msg)
 
-    def receive(self):
+    def recv(self):
         while True:
             if self._receive_length is None:
                 byte_string = self._buffered_socket.read(LENGTH_STRUCT_LENGTH)
@@ -80,11 +80,21 @@ class Connection:
         timestamp = ticks_ms()
         while ticks_ms_diff_to_current(timestamp) < ACKNOWLEDGEMENT_TIMEOUT_MS:
             try:
-                message = self.receive()
-                if message is not None:
+                message = self.recv()
+            except NoReadableDataException:
+                pass
+            except ConnectionClosedDownException as e:
+                raise AcknowledgementException("ack failed: {}".format(e))
+            except InvalidDataException as e:
+                raise AcknowledgementException("ack failed: {}".format(e))
+            else:
+                if isinstance(message, dict):
                     assert message['ack'] == 1
                     return
-            except Exception as e:
-                raise AcknowledgementException("ack failed: {}".format(e))
+                else:
+                    raise AcknowledgementException("ack failed, wrong message format: {}".format(message))
 
         raise AcknowledgementException("timeout on receiving acknowledgement")
+
+    def close(self):
+        self._buffered_socket.close()

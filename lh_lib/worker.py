@@ -19,7 +19,7 @@ class Worker:
         self.assignments = {}
 
     def remove_general_connection(self, conn, reason):
-        conn.socket.close()
+        conn.close()
         self.general_connections.remove(conn)
         log("removing general connection: {} | reason: {} | num general connections: {}", conn.address, reason, len(self.general_connections))
 

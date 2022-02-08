@@ -37,7 +37,7 @@ while not wlan.isconnected():
 
             start_time = time.ticks_ms()
             while (not wlan.isconnected()) and (time.ticks_ms() - start_time < 10000):
-                time.sleep_ms(500)
+                time.sleep_ms(100)
 
             if wlan.isconnected():
                 print(" SUCCESS")
@@ -53,8 +53,10 @@ while not wlan.isconnected():
 
 print("network config: {}".format(wlan.ifconfig()))
 print("")
-print("adjusting machine frequency to max: 240MHz (default: 160MHz)")
+
 machine.freq(240000000)
+print("adjusted machine frequency to max: 240MHz (default: 160MHz)")
+print("\n\n")
 
 # webrepl.start(password=WEBREPL_PASSWORD)
 # print("webREPL started with password: {}".format(WEBREPL_PASSWORD))

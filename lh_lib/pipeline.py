@@ -28,7 +28,7 @@ class AbstractPipeline:
 
     def invalidate(self, reason):
         if self.conn:
-            self.conn.socket.close()
+            self.conn.close()
             log("invalidating pipeline connection: {} | pipe_id: {} | reason: {} | lost output buffer of length: {}", self.conn.address, self.pipe_id, reason, len(self.buffer_out))
             self.conn = None
         else:
@@ -69,7 +69,7 @@ class AbstractPipeline:
 
         # if self.buffer_out and (self.time_frame is 0 or ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
 
-        if (self.buffer_out and self.time_frame is 0) or (self.time_frame is not 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
+        if (self.buffer_out and self.time_frame == 0) or (self.time_frame != 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
             try:
                 self.conn.send(self.buffer_out)
                 # log("sending message | len: {}", len(self.buffer_out))

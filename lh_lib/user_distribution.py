@@ -1,6 +1,6 @@
 import re
 
-from lh_lib.network import Client
+from lh_lib.network_stack.client import Client
 
 
 class _PipelineHelper:
@@ -162,10 +162,10 @@ class Device:
         conn = Client(self.host, self.port)
         conn.send({'remove-assignment': {'assignment-id': assignment_id}})
         conn.recv_acknowledgement()
-        conn.socket.close()
+        conn.close()
 
     def distribute_assignment(self, distribution):
         conn = Client(self.host, self.port)
         conn.send({'processing-assignment': distribution[self.id]})
         conn.recv_acknowledgement()
-        conn.socket.close()
+        conn.close()
