@@ -23,7 +23,7 @@ IMPORTANT: eval() is used extensively on the generic functions. Micropython does
 """
 import os
 
-from lh_lib.user_distribution import NoOutputNode, SingleOutputNode, DualOutputNode
+from lh_lib.graph.objects import NoOutputNode, SingleOutputNode, DualOutputNode
 from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
 from lh_lib.logging import DataLogger
 

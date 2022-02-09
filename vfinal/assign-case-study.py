@@ -4,7 +4,6 @@ utility script to clear or assign case study assignments
 
 import os
 import sys
-import json
 
 try:
     from lh_lib.exceptions import AcknowledgementException
@@ -26,16 +25,15 @@ def run():
     else:
         raise Exception(f'unknown case study selector {sys.argv[1]}')
 
-    distribution, assignment_order = get_distribution()
-    # print(json.dumps(distribution))
+    ordered_devices, distribution = get_distribution()
 
     if len(sys.argv) == 3:
         if sys.argv[2] == 'order':
-            for device in assignment_order:
+            for device in ordered_devices:
                 print(f'{device.host}:{device.port}')
         elif sys.argv[2] == 'clear':
             print('clearing assignment')
-            for device in assignment_order:
+            for device in ordered_devices:
                 try:
                     device.remove_assignment('0')
                 except (AcknowledgementException, TimeoutError, ConnectionRefusedError):
@@ -45,7 +43,7 @@ def run():
             raise Exception(f'unknown command: {sys.argv[1]}')
     else:
         print('removing old assignments')
-        for device in assignment_order:
+        for device in ordered_devices:
             try:
                 device.remove_assignment('0')
             except (AcknowledgementException, TimeoutError, ConnectionRefusedError):
@@ -53,7 +51,7 @@ def run():
                     f'Fatal Error: device {device.host}:{device.port} is not reachable. Please check if Framework is running.')
 
         print('assigning new assignment')
-        for device in assignment_order:
+        for device in ordered_devices:
             try:
                 device.distribute_assignment(distribution)
             except AcknowledgementException:

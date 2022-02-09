@@ -9,10 +9,11 @@ try:
     from lh_lib.user_processes import SensorRead
 except ImportError:
     sys.path.insert(1, os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
-    from lh_lib.user_nodes import SensorRead
+    from lh_lib.graph.user.nodes import SensorRead
 
-from lh_lib.user_nodes import SensorRead, PrintItems, Join
-from lh_lib.user_distribution import Device
+from lh_lib.graph.user.nodes import SensorRead, PrintItems, Join
+from lh_lib.graph.user.device import Device
+from lh_lib.graph.distribution import build_distribution
 
 
 esp_32 = Device('192.168.2.182', 8090)
@@ -29,8 +30,8 @@ p2 = Join(esp_32, p0.out0, p1.out0, eval_str='(y[0] > x, x)')
 
 p3 = PrintItems(pc, p2.out0, format_str='temperature is greater than {1} degrees Celsius: {0}', time_frame=100)
 
-distribution, assignment_order = p0.build_distribution('0')
+ordered_devices, distribution = build_distribution('0')
 
-for device in assignment_order:
+for device in ordered_devices:
     device.remove_assignment('0')
     device.distribute_assignment(distribution)
