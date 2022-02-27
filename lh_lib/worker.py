@@ -1,5 +1,5 @@
 from lh_lib.logging import log
-from lh_lib.assignment import GeneralAssignment
+from lh_lib.assignment import Assignment
 from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, AssignmentException, ExpectedException, print_traceback
 from lh_lib.network_stack.server import Server
 
@@ -74,7 +74,7 @@ class Worker:
                 if assignment_id in self.assignments:
                     raise AssignmentException("assignment-id {} is already in use".format(assignment_id))
 
-                self.assignments[assignment_id] = GeneralAssignment(setup_obj, self.sensor_manager)
+                self.assignments[assignment_id] = Assignment(setup_obj, self.sensor_manager)
                 log("creating assignment {} | num assignments: {}", assignment_id, len(self.assignments))
             elif 'remove-assignment' in d:
                 assignment_id = d['remove-assignment']['assignment-id']

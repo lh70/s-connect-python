@@ -4,10 +4,19 @@ from lh_lib.network_stack.client import Client
 from lh_lib.exceptions import AssignmentException
 from lh_lib.pipeline import InputPipeline, OutputPipeline, LocalPipeline
 
-import lh_lib.graph.user.nodes
+# import lh_lib.graph.user.nodes
+
+"""
+Imports from the user nodes
+"""
+import os
+
+from lh_lib.graph.objects import NoOutputNode, SingleOutputNode, DualOutputNode
+from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
+from lh_lib.logging import DataLogger
 
 
-class GeneralAssignment:
+class Assignment:
 
     def __init__(self, setup_obj, sensor_manager):
         self.setup_obj = setup_obj
@@ -23,7 +32,9 @@ class GeneralAssignment:
         # processing setup
         self.processing = setup_obj['processing']
         for proc in self.processing:
-            proc_cls = getattr(lh_lib.graph.user.nodes, proc['class'])
+            exec(proc['code'], globals(), locals())
+            proc_cls = locals()[proc['class']]
+            # proc_cls = getattr(lh_lib.graph.user.nodes, proc['class'])
             proc['run'] = proc_cls.run
             proc['kwargs']['storage'] = {}
             for kw, value in proc['kwargs'].items():

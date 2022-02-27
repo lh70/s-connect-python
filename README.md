@@ -8,8 +8,6 @@ This contains the actual framework code. The deployment script transfers this co
 Examples on how to start the framework are the vfinal/run-desktop-worker.py and the vfinal/run-micropython-worker.py.
 The vfinal/run-micropython-worker.py script must be run on the esp32 with for 
 example: mpremote run vfinal/run-micropython-worker.py
-## v1 - v3
-These folders contain old framework code that is probably not runnable anymore.
 ## vfinal
 Contains code to start the framework and utility scripts for the case study
 ### vfinal/case_studies
@@ -47,3 +45,25 @@ micropython with for example: mpremote fs cp main.py :main.py
 
 Micropython supports two scripts automatically. boot.py is run first as a setup script. main.py is run second for
 program logic that should be run on micropython start (which is on poweron, or the EN button)
+
+## possible integration
+The device to device communication can be split from the user modules.
+
+Change the programming model so there are only user functions with the already used io model.
+
+The user class model is omitted and the graph is build by using function name strings and the necessary kwargs to run it.
+
+Graph linking is open for suggestions.
+
+Now use rescala and scalaloci to build a distributed function graph.
+
+Now use the student's thesis to convert the individual nodes of the graph into python functions.
+
+Now develop a custom mapper to generate the python-framework understandable json graph structure with these functions.
+
+Now find a way to (dynamically?) distribute the python functions onto the microprocessors.
+
+Now use the python-framework intended way to run the graph.
+
+Now your done and scalaloci can create and distribute a scala reactive graph onto microprocessors.
+
