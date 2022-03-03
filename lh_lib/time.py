@@ -1,7 +1,6 @@
-import sys
 import time
 
-RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
+from lh_lib.constants import RUNNING_MICROPYTHON
 
 
 def ticks_ms():

@@ -1,6 +1,6 @@
 from lh_lib.graph.objects import Edge
 from lh_lib.graph.ordering import topological_sort
-from lh_lib.graph.user.device import Device
+from lh_lib.graph.device import Device
 
 import inspect
 
@@ -23,8 +23,9 @@ def _build_processing(distribution):
     ordered_devices, ordered_nodes = topological_sort()
 
     for node in ordered_nodes:
-        # distribution[node.device]['processing'].append({'class': type(node).__name__, 'kwargs': node.kwargs})
-        distribution[node.device]['processing'].append({'class': type(node).__name__, 'kwargs': node.kwargs, 'code': inspect.getsource(node.__class__)})
+        # check signature of nodes once before adding them to distribution
+        # node.check_signature()
+        distribution[node.device]['processing'].append({'func_name': node.func.__name__, 'kwargs': node.kwargs, 'code': inspect.getsource(node.func)})
 
     return ordered_devices
 

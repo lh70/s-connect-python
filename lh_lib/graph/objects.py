@@ -1,59 +1,60 @@
-import re
+import inspect
+
+
+class StrFormatIter:
+    def __init__(self, string):
+        self.string = string
+
+    def __iter__(self):
+        self.idx = -1
+        return self
+
+    def __next__(self):
+        self.idx += 1
+        return self.string + str(self.idx)
 
 
 class Node:
     instances = []
 
-    def __init__(self, device, **kwargs):
+    def __init__(self, device, func, inputs=(), **kwargs):
         Node.instances.append(self)
 
         self.device = device
         self.kwargs = kwargs
+        self.func = func
 
-        for kw, value in self.kwargs.items():
-            if re.match('^in[0-9]+$', kw):
-                # value is from_node, self is to_node
-                edge = Edge(value, self)
+        for node in inputs:
+            # node is from_node, self is to_node
+            edge = Edge(node, self)
 
-                # replace node with equivalent edge id
-                self.kwargs[kw] = edge.id
+            # define param for out of loop usage
+            param = None
 
-                # add edge id to kwargs of other node
-                # add reference of self to other node to make a from -> to traversal possible
-                if isinstance(value, SingleOutputNode):
-                    if 'out0' in value.kwargs:
-                        raise Exception(f'Node {value} has too many outputs assigned')
-                    else:
-                        value.kwargs['out0'] = edge.id
-                        value.out0 = self
-                elif isinstance(value, DualOutputNode):
-                    if 'out0' not in value.kwargs:
-                        value.kwargs['out0'] = edge.id
-                        value.out0 = self
-                    elif 'out1' not in value.kwargs:
-                        value.kwargs['out1'] = edge.id
-                        value.out1 = self
-                    else:
-                        raise Exception(f'Node {value} has too many outputs assigned')
+            # find the next unused input parameter (of this node)
+            for param in StrFormatIter('in'):
+                if param not in self.kwargs:
+                    break
 
+            # set linkage id into kwargs
+            self.kwargs[param] = edge.id
 
-class NoOutputNode(Node):
-    pass
+            # find the next unused output parameter (of the other node)
+            for param in StrFormatIter('out'):
+                if param not in node.kwargs:
+                    break
 
+            # set linkage id into kwargs
+            node.kwargs[param] = edge.id
+            # add direct reference for ordering traversal. todo: change ordering to use kwargs
+            setattr(node, param, self)
 
-class SingleOutputNode(Node):
+    def check_signature(self):
+        # checks if the keywords + storage are exactly the function signature
+        keywords = set(self.kwargs)
+        keywords.add('storage')
 
-    def __init__(self, device, **kwargs):
-        super().__init__(device, **kwargs)
-        self.out0 = None
-
-
-class DualOutputNode(Node):
-
-    def __init__(self, device, **kwargs):
-        super().__init__(device, **kwargs)
-        self.out0 = None
-        self.out1 = None
+        assert keywords == set(inspect.signature(self.func).parameters)
 
 
 class Edge:

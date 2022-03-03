@@ -1,4 +1,4 @@
-from lh_lib.graph.objects import Node, SingleOutputNode, DualOutputNode
+from lh_lib.graph.objects import Node, StrFormatIter
 
 
 def topological_sort():
@@ -16,14 +16,12 @@ def topological_sort():
     def recursive_util(n):
         visited[n] = True
 
-        if isinstance(n, SingleOutputNode):
-            if not visited[n.out0]:
-                recursive_util(n.out0)
-        elif isinstance(n, DualOutputNode):
-            if not visited[n.out0]:
-                recursive_util(n.out0)
-            if not visited[n.out1]:
-                recursive_util(n.out1)
+        for param in StrFormatIter('out'):
+            if hasattr(n, param):
+                if not visited[getattr(n, param)]:
+                    recursive_util(getattr(n, param))
+            else:
+                break
 
         # add node after each following node is already added
         node_stack.append(n)

@@ -11,7 +11,6 @@ Imports from the user nodes
 """
 import os
 
-from lh_lib.graph.objects import NoOutputNode, SingleOutputNode, DualOutputNode
 from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
 from lh_lib.logging import DataLogger
 
@@ -33,9 +32,11 @@ class Assignment:
         self.processing = setup_obj['processing']
         for proc in self.processing:
             exec(proc['code'], globals(), locals())
-            proc_cls = locals()[proc['class']]
+            proc['run'] = locals()[proc['func_name']]
+
             # proc_cls = getattr(lh_lib.graph.user.nodes, proc['class'])
-            proc['run'] = proc_cls.run
+            # proc['run'] = proc_cls.run
+
             proc['kwargs']['storage'] = {}
             for kw, value in proc['kwargs'].items():
                 if re.match('^in[0-9]+$', kw):

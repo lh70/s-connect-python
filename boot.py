@@ -25,20 +25,21 @@ wlan.config(dhcp_hostname=WIFI_DEVICE_NAME)
 
 try:
     while not wlan.isconnected():
-        print("Scanning for Wifi:")
+        print('scanning for wlan:')
 
         wlan_list = wlan.scan()
         if not wlan_list:
-            print("No WLAN found, don't know why.")
-            raise KeyboardInterrupt()
+            print('  empty list -> must restart wlan interface')
+            wlan.active(False)
+            wlan.active(True)
+            continue
 
         for ssid, bssid, _, _, _, _ in wlan_list:
             ssid = ssid.decode()
-            print("Found: {}...".format(ssid))
+            print(f' found: {ssid}...', end='')
 
             if ssid in WIFI_CREDENTIALS:
-                print(" credentials provided.")
-                print("Connecting...")
+                print('credentials provided...connecting...', end='')
                 wlan.connect(ssid, WIFI_CREDENTIALS[ssid], bssid=bssid)
 
                 start_time = time.ticks_ms()
@@ -46,23 +47,23 @@ try:
                     time.sleep_ms(100)
 
                 if wlan.isconnected():
-                    print(" SUCCESS")
+                    print('SUCCESS')
                     break
                 else:
-                    print(" FAILED. Trying next one.")
+                    print('FAILED...trying next one')
             else:
-                print(" no credentials provided.")
+                print('no credentials provided')
 
         if not wlan.isconnected():
-            print("No connectable network found. Retrying in 10 seconds.")
+            print('No connectable network found. Retrying in 10 seconds.')
             time.sleep_ms(10000)
 except KeyboardInterrupt:
-    print("moving on without WLAN\n")
+    print('interrupt by user...moving on without wlan\n')
 else:
-    print("network config: {}\n".format(wlan.ifconfig()))
+    print(f'network config: {wlan.ifconfig()}\n')
 
 machine.freq(240000000)
-print("adjusted machine frequency to max: 240MHz (default: 160MHz)\n\n")
+print('adjusted machine frequency to max: 240MHz (default: 160MHz)\n\n')
 
 # webrepl.start(password=WEBREPL_PASSWORD)
 # print("webREPL started with password: {}".format(WEBREPL_PASSWORD))

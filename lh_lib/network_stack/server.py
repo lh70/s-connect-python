@@ -3,6 +3,9 @@ import socket
 from lh_lib.network_stack.connection import Connection
 
 
+DEFAULT_PORT = 8090
+
+
 class Server:
     """
     Initialises a tcp ipv4 stream server which listens for incoming connections
@@ -11,9 +14,12 @@ class Server:
     max_connect_requests:integer the maximum requests in pre-accept queue before dismissing connect-requests
     """
 
-    def __init__(self, server_port, max_connect_requests=5):
+    def __init__(self, server_port=DEFAULT_PORT, max_connect_requests=5):
         # a standard ipv4 stream socket
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # allow immediate rebind to a floating socket (last app crashed or otherwise non fully closed server socket)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # bind to all interfaces available
         self.socket.bind(('', server_port))
         # We will accept a maximum of x connect requests into our connect queue before we are busy

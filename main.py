@@ -23,24 +23,29 @@ from lh_lib.sensors.esp32.rotary_encoder import RotaryEncoder
 from lh_lib.sensors.esp32.co2 import CO2
 from lh_lib.sensors.esp32.button import Button
 
-lh_lib.logging.ACTIVE = False
+
+def run():
+    lh_lib.logging.ACTIVE = False
+
+    dummy_sensor = Dummy()
+    poti_sensor = Poti(32, attenuation=ATT3_6V)
+    hall_sensor = Hall()
+    touch_sensor = Touch(35)
+    temperature_sensor = Temperature()
+    dht11_sensor = DHT11(13)
+    #gyro_sensor = Gyro()
+    ultrasonic_sensor = Ultrasonic(25, 33)
+    rotary_encoder_sensor = RotaryEncoder(34, 26)
+    co2_sensor = CO2(27)
+    button_sensor = Button(14)
+
+    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, ultrasonic_sensor, rotary_encoder_sensor, co2_sensor, button_sensor)
+
+    worker = Worker(8090, sensor_manager)
+
+    while True:
+        worker.update()
 
 
-dummy_sensor = Dummy()
-poti_sensor = Poti(32, attenuation=ATT3_6V)
-hall_sensor = Hall()
-touch_sensor = Touch(35)
-temperature_sensor = Temperature()
-dht11_sensor = DHT11(13)
-#gyro_sensor = Gyro()
-ultrasonic_sensor = Ultrasonic(25, 33)
-rotary_encoder_sensor = RotaryEncoder(34, 26)
-co2_sensor = CO2(27)
-button_sensor = Button(14)
-
-sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, ultrasonic_sensor, rotary_encoder_sensor, co2_sensor, button_sensor)
-
-worker = Worker(8090, sensor_manager)
-
-while True:
-    worker.update()
+if __name__ == '__main__':
+    run()

@@ -4,9 +4,6 @@ from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownExcep
 from lh_lib.network_stack.server import Server
 
 
-PORT = 8090
-
-
 class Worker:
 
     def __init__(self, port, sensor_manager):

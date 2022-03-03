@@ -17,6 +17,8 @@ from lh_lib.sensors.esp32.rotary_encoder import RotaryEncoder
 from lh_lib.sensors.esp32.co2 import CO2
 from lh_lib.sensors.esp32.button import Button
 
+from lh_lib.network_stack.server import DEFAULT_PORT
+
 
 def run():
     dummy_sensor = Dummy()
@@ -33,7 +35,7 @@ def run():
 
     sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, ultrasonic_sensor, rotary_encoder_sensor, co2_sensor, button_sensor)
 
-    worker = Worker(8090, sensor_manager)
+    worker = Worker(DEFAULT_PORT, sensor_manager)
 
     log("Worker started")
 
