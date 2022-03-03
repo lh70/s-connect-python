@@ -17,6 +17,12 @@ from lh_lib.sensors.manage import SensorManager
 from lh_lib.sensors.esp32.dummy import Dummy
 
 
+RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
+
+if RUNNING_MICROPYTHON:
+    raise Exception("Run this script in a CPython environment, not micropython! (python scripts/run-desktop-worker.py)")
+
+
 def run():
     if len(sys.argv) == 2:
         port = int(sys.argv[1])

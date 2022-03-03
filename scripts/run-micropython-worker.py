@@ -1,6 +1,7 @@
 """
 to be run on an esp32 with mpremote run ... . Starts the framework on micropython.
 """
+import sys
 
 from lh_lib.worker import Worker
 from lh_lib.logging import log
@@ -16,8 +17,13 @@ from lh_lib.sensors.esp32.ultrasonic import Ultrasonic
 from lh_lib.sensors.esp32.rotary_encoder import RotaryEncoder
 from lh_lib.sensors.esp32.co2 import CO2
 from lh_lib.sensors.esp32.button import Button
-
 from lh_lib.network_stack.server import DEFAULT_PORT
+
+
+RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
+
+if not RUNNING_MICROPYTHON:
+    raise Exception("Call this script on the microcontroller directly! (mpremote run scripts/run-micropython-worker.py)")
 
 
 def run():

@@ -10,7 +10,7 @@ import sys
 RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
 
 if not RUNNING_MICROPYTHON:
-    raise Exception("Call this script on the microcontroller directly! (mpremote run clear_device_filesystem.py)")
+    raise Exception("Call this script on the microcontroller directly! (mpremote run scripts/clear-device-filesystem.py)")
 
 
 def gather_files_and_directories(root=''):
