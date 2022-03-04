@@ -2,7 +2,7 @@
 #  Set-ExecutionPolicy Unrestricted
 # or do this for the current powershell session:
 #  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-$worker_script_path = "$PSScriptRoot/run-desktop-worker.py"
+$worker_script_path = "$PSScriptRoot/../scripts/run-desktop-worker.py"
 
 invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8090'; python $worker_script_path;}"
 invoke-expression "cmd /c start powershell -NoExit -Command {Set-Location -Path $PSScriptRoot; `$host.UI.RawUI.WindowTitle = 'Worker 8100'; python $worker_script_path 8100;}"
