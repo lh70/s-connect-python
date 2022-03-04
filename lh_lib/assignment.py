@@ -4,10 +4,8 @@ from lh_lib.network_stack.client import Client
 from lh_lib.exceptions import AssignmentException
 from lh_lib.pipeline import InputPipeline, OutputPipeline, LocalPipeline
 
-# import lh_lib.graph.user.nodes
-
 """
-Imports from the user nodes
+Following imports are usable in the dynamic node functions
 """
 import os
 
@@ -33,10 +31,6 @@ class Assignment:
         for proc in self.processing:
             exec(proc['code'], globals(), locals())
             proc['run'] = locals()[proc['func_name']]
-
-            # proc_cls = getattr(lh_lib.graph.user.nodes, proc['class'])
-            # proc['run'] = proc_cls.run
-
             proc['kwargs']['storage'] = {}
             for kw, value in proc['kwargs'].items():
                 if re.match('^in[0-9]+$', kw):
