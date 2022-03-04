@@ -33,4 +33,4 @@ class Device:
         conn.close()
 
     def __repr__(self):
-        return f"Device {self.id}"
+        return f"Device {self.id} {self.host}:{self.port}"
