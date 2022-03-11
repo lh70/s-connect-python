@@ -9,7 +9,7 @@ def build_distribution(assignment_id):
     # get all device instances
     all_devices = Device.instances
 
-    distribution = {device: {'assignment-id': assignment_id, 'pipelines': {}, 'processing': []} for device in all_devices}
+    distribution = {device: {'id': assignment_id, 'pipelines': {}, 'processing': []} for device in all_devices}
 
     # distribution gets enriched
     ordered_devices = _build_processing(distribution)
@@ -50,8 +50,8 @@ def _build_pipelines(distribution):
                 'type': 'input',
                 'host': 'localhost',
                 'port': edge.node_from.device.port,
-                'time-frame': edge.node_to.device.max_time_frame,
-                'values-per-time-frame': edge.node_to.device.max_values_per_time_frame
+                'time_frame': edge.node_to.device.max_time_frame,
+                'values_per_time_frame': edge.node_to.device.max_values_per_time_frame
             }
         else:
             distribution[edge.node_from.device]['pipelines'][edge.id] = {'type': 'output'}
@@ -59,6 +59,6 @@ def _build_pipelines(distribution):
                 'type': 'input',
                 'host': edge.node_from.device.host,
                 'port': edge.node_from.device.port,
-                'time-frame': edge.node_to.device.max_time_frame,
-                'values-per-time-frame': edge.node_to.device.max_values_per_time_frame
+                'time_frame': edge.node_to.device.max_time_frame,
+                'values_per_time_frame': edge.node_to.device.max_values_per_time_frame
             }

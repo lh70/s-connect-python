@@ -12,7 +12,7 @@ class Device:
 
         for device in Device.instances:
             if device.host == host and device.port == port:
-                raise Exception("Devices {} and {} has same host/port configuration".format(device.id, self.id))
+                raise Exception(f'Devices {device.id} and {self.id} has same host/port configuration')
 
         Device.instances.append(self)
         self.host = host
@@ -22,15 +22,15 @@ class Device:
 
     def remove_assignment(self, assignment_id):
         conn = Client(self.host, self.port)
-        conn.send({'remove-assignment': {'assignment-id': assignment_id}})
+        conn.send({'type': 'remove_assignment', 'content': {'id': assignment_id}})
         conn.recv_acknowledgement()
         conn.close()
 
     def distribute_assignment(self, distribution):
         conn = Client(self.host, self.port)
-        conn.send({'processing-assignment': distribution[self]})
+        conn.send({'type': 'add_assignment', 'content': distribution[self]})
         conn.recv_acknowledgement()
         conn.close()
 
     def __repr__(self):
-        return f"Device {self.id} {self.host}:{self.port}"
+        return f'Device {self.id} {self.host}:{self.port}'

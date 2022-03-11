@@ -18,7 +18,7 @@ class Assignment:
     def __init__(self, setup_obj, sensor_manager):
         self.setup_obj = setup_obj
         self.sensor_manager = sensor_manager
-        self.assignment_id = setup_obj['assignment-id']
+        self.assignment_id = setup_obj['id']
         self.leased_sensors = []
 
         # pipeline setup
@@ -61,21 +61,22 @@ class Assignment:
         pipe_type = pipeline_config['type']  # get here, so we get no confusing exceptions during the possible raise
 
         if pipe_id in self.pipelines and self.pipelines[pipe_id].valid:
-            raise AssignmentException("pipe_id {} has already a valid pipeline connection (during creating {} pipeline)".format(pipe_id, pipe_type))
+            raise AssignmentException(f'pipe_id {pipe_id} has already a valid pipeline connection (during creating {pipe_type} pipeline)')
 
         if pipe_type == 'input':
             host = pipeline_config['host']
             port = pipeline_config['port']
-            time_frame = pipeline_config['time-frame']
-            values_per_time_frame = pipeline_config['values-per-time-frame']
+            time_frame = pipeline_config['time_frame']
+            values_per_time_frame = pipeline_config['values_per_time_frame']
 
             conn = Client(host, port)
             conn.send({
-                'pipeline-request': {
-                    'assignment-id': self.assignment_id,
-                    'pipe-id': pipe_id,
-                    'time-frame': time_frame,
-                    'values-per-time-frame': values_per_time_frame
+                'type': 'pipeline_request',
+                'content': {
+                    'assignment_id': self.assignment_id,
+                    'pipe_id': pipe_id,
+                    'time_frame': time_frame,
+                    'values_per_time_frame': values_per_time_frame
                 }
             })
             conn.recv_acknowledgement()
@@ -85,13 +86,13 @@ class Assignment:
         elif pipe_type == 'local':
             self.pipelines[pipe_id] = LocalPipeline(pipe_id)  # local pipeline is always valid
         else:
-            raise AssignmentException("pipeline type {} does not exist (during creating pipeline {})".format(pipe_type, pipe_id))
+            raise AssignmentException(f'pipeline type {pipe_type} does not exist (during creating pipeline {pipe_id})')
 
     def assign_output_pipeline(self, conn, pipe_id, time_frame, values_per_time_frame):
         if pipe_id in self.pipelines:
             if self.pipelines[pipe_id].valid:
-                raise AssignmentException("pipe-id {} has already a valid pipeline connection (during assign output pipeline)".format(pipe_id))
+                raise AssignmentException(f'pipe-id {pipe_id} has already a valid pipeline connection (during assign output pipeline)')
             else:
                 self.pipelines[pipe_id].activate(conn, time_frame, values_per_time_frame)
         else:
-            raise AssignmentException("pipe-id {} does not exists in outputs of assignment {}".format(pipe_id, self.assignment_id))
+            raise AssignmentException(f'pipe-id {pipe_id} does not exists in outputs of assignment {self.assignment_id}')
