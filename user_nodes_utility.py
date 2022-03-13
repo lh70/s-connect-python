@@ -1,5 +1,9 @@
 from lh_lib.graph.objects import Node
-from user_nodes import duplicate, throughput_observer, case_study_delay_observer, monitor_latest, print_queue
+from user_nodes.duplicate import duplicate
+from user_nodes.throughput_observer import throughput_observer
+from user_nodes.case_study_delay_observer import case_study_delay_observer
+from user_nodes.monitor_latest import monitor_latest
+from user_nodes.print_queue import print_queue
 
 
 def observe_throughput(device, node, filepath=False):
