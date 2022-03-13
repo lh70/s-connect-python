@@ -17,9 +17,9 @@ def topological_sort():
         visited[n] = True
 
         for param in StrFormatIter('out'):
-            if hasattr(n, param):
-                if not visited[getattr(n, param)]:
-                    recursive_util(getattr(n, param))
+            if param in n.kwargs:
+                if not visited[n.kwargs[param].node_to]:
+                    recursive_util(n.kwargs[param].node_to)
             else:
                 break
 

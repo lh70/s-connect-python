@@ -37,7 +37,7 @@ class Node:
                     break
 
             # set linkage id into kwargs
-            self.kwargs[param] = edge.id
+            self.kwargs[param] = edge
 
             # find the next unused output parameter (of the other node)
             for param in StrFormatIter('out'):
@@ -45,16 +45,42 @@ class Node:
                     break
 
             # set linkage id into kwargs
-            node.kwargs[param] = edge.id
-            # add direct reference for ordering traversal. todo: change ordering to use kwargs
-            setattr(node, param, self)
+            node.kwargs[param] = edge
+
+    def get_serializable(self):
+        kwargs = self.kwargs.copy()
+
+        # iterate through all input edges
+        for param in StrFormatIter('in'):
+            if param in kwargs:
+                kwargs[param] = kwargs[param].id
+            else:
+                break
+
+        # iterate through all output edges
+        for param in StrFormatIter('out'):
+            if param in kwargs:
+                kwargs[param] = kwargs[param].id
+            else:
+                break
+
+        return {'func_name': self.func.__name__, 'kwargs': kwargs, 'code': inspect.getsource(self.func)}
 
     def check_signature(self):
-        # checks if the keywords + storage are exactly the function signature
-        keywords = set(self.kwargs)
-        keywords.add('storage')
+        signature = inspect.signature(self.func)
 
-        assert keywords == set(inspect.signature(self.func).parameters)
+        malicious_kwargs = set(self.kwargs) - set(signature.parameters)
+        if malicious_kwargs:
+            raise Exception(f'Kwargs: {malicious_kwargs} are defined without being in function signature of function: {self.func.__name__}')
+
+        for name, param in signature.parameters.items():
+            if param.kind == param.POSITIONAL_ONLY:
+                raise Exception(f'Parameter: {name} of function: {self.func.__name__} is POSITIONAL_ONLY, which is not allowed. All Parameters must allow for keyword style supply.')
+            if name not in self.kwargs:
+                if param.kind == param.VAR_POSITIONAL or param.kind == param.VAR_KEYWORD:
+                    pass  # ignore for now or maybe raise exception, because unnecessary parameters should be left out of function signature
+                elif param.default == param.empty:
+                    raise Exception(f'Parameter: {name} of function: {self.func.__name__} has no default value, but is not supplied in kwargs.')
 
 
 class Edge:
@@ -69,3 +95,29 @@ class Edge:
 
         self.node_from = node_from
         self.node_to = node_to
+
+    def get_serializable(self):
+        if self.node_from.device == self.node_to.device:
+            pipeline_from_device = {'type': 'local'}
+            pipeline_to_device = {'type': 'local'}
+        elif self.node_from.device.host == self.node_to.device.host:
+            pipeline_from_device = {'type': 'output'}
+            pipeline_to_device = {
+                'type': 'input',
+                'host': 'localhost',
+                'port': self.node_from.device.port,
+                'time_frame': self.node_to.device.max_time_frame,
+                'values_per_time_frame': self.node_to.device.max_values_per_time_frame
+            }
+        else:
+            pipeline_from_device = {'type': 'output'}
+            pipeline_to_device = {
+                'type': 'input',
+                'host': self.node_from.device.host,
+                'port': self.node_from.device.port,
+                'time_frame': self.node_to.device.max_time_frame,
+                'values_per_time_frame': self.node_to.device.max_values_per_time_frame
+            }
+
+        return self.node_from.device, pipeline_from_device, self.node_to.device, pipeline_to_device
+

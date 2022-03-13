@@ -28,9 +28,11 @@ def run():
     ordered_devices, distribution = get_distribution()
 
     if len(sys.argv) == 3:
-        if sys.argv[2] == 'order':
+        if sys.argv[2] == 'print':
+            print(f'{ordered_devices}\n{distribution}')
+        elif sys.argv[2] == 'order':
             for device in ordered_devices:
-                print(f'{device.host}:{device.port}')
+                print(device)
         elif sys.argv[2] == 'clear':
             print('clearing assignment')
             for device in ordered_devices:

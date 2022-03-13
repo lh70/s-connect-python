@@ -162,7 +162,7 @@ def mean(in0, out0, time_frame=0, storage=None):
     in0.clear()
 
 
-def duplicate(in0, out0, out1, storage):
+def duplicate(in0, out0, out1, storage=None):
     for val in in0:
         out0.append(val)
         out1.append(val)

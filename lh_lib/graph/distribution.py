@@ -2,8 +2,6 @@ from lh_lib.graph.objects import Edge
 from lh_lib.graph.ordering import topological_sort
 from lh_lib.graph.device import Device
 
-import inspect
-
 
 def build_distribution(assignment_id):
     # get all device instances
@@ -23,9 +21,9 @@ def _build_processing(distribution):
     ordered_devices, ordered_nodes = topological_sort()
 
     for node in ordered_nodes:
-        # check signature of nodes once before adding them to distribution
-        # node.check_signature()
-        distribution[node.device]['processing'].append({'func_name': node.func.__name__, 'kwargs': node.kwargs, 'code': inspect.getsource(node.func)})
+        # check function signature of nodes once before adding them to distribution
+        node.check_signature()
+        distribution[node.device]['processing'].append(node.get_serializable())
 
     return ordered_devices
 
@@ -41,24 +39,7 @@ def _build_pipelines(distribution):
     all_edges = Edge.instances
 
     for edge in all_edges:
-        if edge.node_from.device == edge.node_to.device:
-            distribution[edge.node_from.device]['pipelines'][edge.id] = {'type': 'local'}
-            distribution[edge.node_to.device]['pipelines'][edge.id] = {'type': 'local'}
-        elif edge.node_from.device.host == edge.node_to.device.host:
-            distribution[edge.node_from.device]['pipelines'][edge.id] = {'type': 'output'}
-            distribution[edge.node_to.device]['pipelines'][edge.id] = {
-                'type': 'input',
-                'host': 'localhost',
-                'port': edge.node_from.device.port,
-                'time_frame': edge.node_to.device.max_time_frame,
-                'values_per_time_frame': edge.node_to.device.max_values_per_time_frame
-            }
-        else:
-            distribution[edge.node_from.device]['pipelines'][edge.id] = {'type': 'output'}
-            distribution[edge.node_to.device]['pipelines'][edge.id] = {
-                'type': 'input',
-                'host': edge.node_from.device.host,
-                'port': edge.node_from.device.port,
-                'time_frame': edge.node_to.device.max_time_frame,
-                'values_per_time_frame': edge.node_to.device.max_values_per_time_frame
-            }
+        device_from, pipeline_from, device_to, pipeline_to = edge.get_serializable()
+
+        distribution[device_from]['pipelines'][edge.id] = pipeline_from
+        distribution[device_to]['pipelines'][edge.id] = pipeline_to
