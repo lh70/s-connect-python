@@ -19,10 +19,6 @@ class Gyro(AbstractSensor):
     Note:
     Other pins are possible, but sticking to the default pins allows for multiple I2C devices without advanced configuration.
     Frequency is also kept at default 400000Hz which is the maximum rating for the MPU6050 sensor.
-    
-    Note:
-    It seems that updating the source files of gyro.py on esp32 requires a soft-reset (EN), or else a repl-run of the server will hang.
-    main.py runs (which require a soft-reset) are obviously not affected.
     """
     def __init__(self, hw_i2c=0):
         super().__init__()

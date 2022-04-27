@@ -68,7 +68,7 @@ class AbstractPipeline:
                     self.invalidate(f'input buffer length > 2000 : {len(self.buffer_in)}')
 
     def update_send(self):
-        if not self.connected:
+        if not self.connected or not self.assignment_initialized:
             self.buffer_out.clear()
             return
 
