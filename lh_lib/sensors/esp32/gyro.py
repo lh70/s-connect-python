@@ -1,4 +1,4 @@
-from machine import I2C
+from machine import Pin, SoftI2C
 from micropython import const
 
 from lh_lib.sensors.sensor import AbstractSensor
@@ -12,17 +12,16 @@ class Gyro(AbstractSensor):
     communication_name = 'gyro'
 
     """
-    Initialises I2C with one of the default hardware I2C peripherals:
-    0 -> scl_pin:18, sda_pin:19
-    1 -> scl_pin:25, sda_pin:26
-
-    Note:
-    Other pins are possible, but sticking to the default pins allows for multiple I2C devices without advanced configuration.
-    Frequency is also kept at default 400000Hz which is the maximum rating for the MPU6050 sensor.
+    Initialises I2C communication to the gyro sensor.
+    
+    sda/scl:integer can be one of all available GPIO pins: 0-19, 21-23, 25-27, 32-39
+                it is NOT recommended to pick one of the following pins: (1, 3) -> serial, (6, 7, 8, 11, 16, 17) -> embedded flash
+    
+    Frequency is kept at default 400000Hz which is the maximum rating for the MPU6050 sensor.
     """
-    def __init__(self, hw_i2c=0):
+    def __init__(self, sda=Pin(21), scl=Pin(22)):
         super().__init__()
-        self.i2c = I2C(hw_i2c)
+        self.i2c = SoftI2C(sda=sda, scl=scl)
 
         # MPU6050 stores 7 different values, with 2 registers == bytes per value
         self.buf = bytearray(14)
