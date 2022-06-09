@@ -11,6 +11,10 @@ class AbstractSensor:
     """
     def __init__(self):
         self.value = None
+        self.start_irq()
+
+    def __del__(self):
+        self.stop_irq()
 
     """
     can be used by the sensor to register interrupt handlers

@@ -48,8 +48,7 @@ class Assignment:
         for pipeline in self.pipelines.values():
             pipeline.cleanup()
 
-        for sensor in self.leased_sensors:
-            sensor.release_sensor_lease()
+        self.sensor_manager.remove_assignment_sensors(self.assignment_id)
 
     def update(self):
         for pipeline in self.pipelines.values():

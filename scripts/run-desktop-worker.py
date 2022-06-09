@@ -29,7 +29,7 @@ def run():
     else:
         port = DEFAULT_PORT
 
-    worker = Worker(port, SensorManager(Dummy()))
+    worker = Worker(port, SensorManager(Dummy))
 
     log("Worker started")
 

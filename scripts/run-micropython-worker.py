@@ -27,19 +27,7 @@ if not RUNNING_MICROPYTHON:
 
 
 def run():
-    dummy_sensor = Dummy()
-    poti_sensor = Poti(32, attenuation=ATT3_6V)
-    hall_sensor = Hall()
-    touch_sensor = Touch(35)
-    temperature_sensor = Temperature()
-    dht11_sensor = DHT11(13)
-    #gyro_sensor = Gyro()
-    ultrasonic_sensor = Ultrasonic(25, 33)
-    rotary_encoder_sensor = RotaryEncoder(34, 26)
-    co2_sensor = CO2(27)
-    button_sensor = Button(14)
-
-    sensor_manager = SensorManager(dummy_sensor, poti_sensor, hall_sensor, touch_sensor, temperature_sensor, dht11_sensor, ultrasonic_sensor, rotary_encoder_sensor, co2_sensor, button_sensor)
+    sensor_manager = SensorManager(Dummy, Poti, Hall, Touch, Temperature, DHT11, Gyro, Ultrasonic, RotaryEncoder, CO2, Button)
 
     worker = Worker(DEFAULT_PORT, sensor_manager)
 

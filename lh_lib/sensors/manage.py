@@ -8,80 +8,35 @@ class SensorManager:
 
     *sensors:AbstractSensor, AbstractSensor,... takes initialised sensors as input
     """
-    def __init__(self, *sensors):
-        self.observables = {sensor.communication_name: SensorObservable(sensor) for sensor in sensors}
+    def __init__(self, *supported_sensor_classes):
+        self.supported_sensor_classes = supported_sensor_classes
+        self.observables = {}
 
     """
     calls update on all observables
     """
     def update(self):
-        for observable in self.observables.values():
-            observable.update()
+        for observables in self.observables.values():
+            for observable in observables:
+                observable.update()
 
     """
-    increases the sensors lease count by one
+    creates a new sensor observable that gets updated by the sensor manager
     
     returns the sensor observable object or raises CommunicationException if sensor was not found by name (case sensitive)
     """
-    def get_sensor_lease(self, communication_name):
-        if communication_name in self.observables:
-            self.observables[communication_name].get_sensor_lease()
-            return self.observables[communication_name]
-        raise CommunicationException('lease failed: sensor {} does not exist on this computer'.format(communication_name))
+    def get_sensor_lease(self, sensor_class_name, assignment_id, **sensor_class_kwargs):
+        for sensor_class in self.supported_sensor_classes:
+            if sensor_class_name == sensor_class.__name__:
+                if assignment_id not in self.observables:
+                    self.observables[assignment_id] = []
+                self.observables[assignment_id].append(sensor_class(**sensor_class_kwargs))
+                return self.observables[assignment_id][-1]
+        raise CommunicationException('lease failed: sensor {} is not supported by this computer'.format(sensor_class_name))
 
     """
-    decreases the sensors leases by one
-    
-    to be called on connection removal
+    removes all sensors of an assignment
     """
-    def release_sensor_lease(self, observable):
-        observable.release_sensor_lease()
-
-
-class SensorObservable:
-
-    """
-    adds state to a sensor, implementing lazy updates,
-    so updates and interrupts are only used when the sensor is in use
-
-    sensor:AbstractSensor the sensor to observe
-    """
-    def __init__(self, sensor):
-        self.sensor = sensor
-        self.leases = 0
-
-    """
-    gets called repeatedly by the sensor manager
-    only updates sensor when it is in use
-    """
-    def update(self):
-        if self.leases > 0:
-            self.sensor.update()
-
-    """
-    returns the sensors value
-    mimics the sensors behavior
-    
-    can return any serializable value
-    """
-    @property
-    def value(self):
-        return self.sensor.value
-
-    """
-    updates the in-use-counter
-    starts the sensors irq if necessary
-    """
-    def get_sensor_lease(self):
-        if self.leases == 0:
-            self.sensor.start_irq()
-        self.leases += 1
-
-    """
-    updates the in-use-counter
-    stops the sensors irq if necessary
-    """
-    def release_sensor_lease(self):
-        self.leases -= 1
-        if self.leases == 0:
-            self.sensor.stop_irq()
+    def remove_assignment_sensors(self, assignment_id):
+        if assignment_id in self.observables:
+            del self.observables[assignment_id]

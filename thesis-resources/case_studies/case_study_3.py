@@ -35,15 +35,15 @@ def get_distribution():
     delay_observer = CaseStudyDelayObserverBuilder(pc_observer_0, DATA_LOG_PATH + 'delay.log')
 
     raw_co2 = observe_throughput(pc_observer_1,
-                                 Node(esp_32_3, sensor_read, sensor='co2'), DATA_LOG_PATH + 'co2.log')
+                                 Node(esp_32_3, sensor_read, sensor='CO2'), DATA_LOG_PATH + 'co2.log')
     raw_dht11 = observe_throughput(pc_observer_2,
-                                   Node(esp_32_4, sensor_read, sensor='dht11'), DATA_LOG_PATH + 'dht11.log')
+                                   Node(esp_32_4, sensor_read, sensor='DHT11'), DATA_LOG_PATH + 'dht11.log')
     raw_ultrasonic = observe_throughput(pc_observer_3,
-                                        Node(esp_32_5, sensor_read, sensor='ultrasonic'), DATA_LOG_PATH + 'ultrasonic.log')
+                                        Node(esp_32_5, sensor_read, sensor='Ultrasonic'), DATA_LOG_PATH + 'ultrasonic.log')
     raw_rotary_encoder = observe_throughput(pc_observer_4,
-                                            Node(esp_32_1, sensor_read, sensor='rotary_encoder'), DATA_LOG_PATH + 'rotary_encoder.log')
+                                            Node(esp_32_1, sensor_read, sensor='RotaryEncoder'), DATA_LOG_PATH + 'rotary_encoder.log')
     raw_button = delay_observer.input(observe_throughput(pc_observer_5,
-                                                         Node(esp_32_2, sensor_read, sensor='button'), DATA_LOG_PATH + 'button.log'))
+                                                         Node(esp_32_2, sensor_read, sensor='Button'), DATA_LOG_PATH + 'button.log'))
 
     selection_int = Node(esp_32_1, map, [raw_rotary_encoder], eval_str='int(x/2) % 3')
 

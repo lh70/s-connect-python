@@ -20,10 +20,10 @@ from user_nodes import sensor_read, print_items, join
 esp_32 = Device('192.168.2.182', 8090)
 pc = Device('192.168.2.163', 8090)
 
-p0 = Node(esp_32, sensor_read, sensor='rotary_encoder')
+p0 = Node(esp_32, sensor_read, sensor='RotaryEncoder')
 # output: current position: 0..1..2..3..4..3..2..
 
-p1 = Node(esp_32, sensor_read, sensor='dht11')
+p1 = Node(esp_32, sensor_read, sensor='DHT11')
 # output: current temperature + humidity: (25, 70)..(24, 85)..
 
 p2 = Node(esp_32, join, [p0, p1], eval_str='(y[0] > x, x)')
