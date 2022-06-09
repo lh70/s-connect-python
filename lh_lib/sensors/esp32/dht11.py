@@ -29,7 +29,7 @@ class DHT11(AbstractSensor):
         Except the timeout, also the pin choice seem to affect if it works or runs into timeout.
         Pins that seem to work: 13
     """
-    def __init__(self, pin):
+    def __init__(self, pin=13):
         super().__init__()
         self.d = dht.DHT11(Pin(pin, mode=Pin.IN, pull=Pin.PULL_UP))
         self.last_measuring = ticks_ms() - MINIMUM_MEASURING_INTERVAL_MS

@@ -18,7 +18,7 @@ class RotaryEncoder(AbstractSensor):
                 Default is 0.5 -> 2 steps per resting state -> states between resting states are also valid states
                 0.25 would also be reasonable -> 1 step per resting state
     """
-    def __init__(self, clk_pin, dt_pin, scale=0.5):
+    def __init__(self, clk_pin=34, dt_pin=26, scale=0.5):
         super().__init__()
         self.clk_pin = Pin(clk_pin, Pin.IN)
         self.dt_pin = Pin(dt_pin, Pin.IN)

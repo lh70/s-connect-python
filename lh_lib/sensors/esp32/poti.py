@@ -23,7 +23,7 @@ class Poti(AbstractSensor):
                          Important: MAX INPUT PIN RATING: 3.6V -> General good idea: Do not exceed 3.3V
 
     """
-    def __init__(self, pin, attenuation=ATT1V):
+    def __init__(self, pin=32, attenuation=ATT3_6V):
         super().__init__()
         self.adc = ADC(Pin(pin, Pin.IN))
         self.adc.atten(attenuation)

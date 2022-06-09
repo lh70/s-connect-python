@@ -17,7 +17,7 @@ class Button(AbstractSensor):
     
     Note: logic considers pull=None to read states as Pin.PULL_DOWN -> 1=>True, 0=>False
     """
-    def __init__(self, pin, pull=Pin.PULL_UP):
+    def __init__(self, pin=14, pull=Pin.PULL_UP):
         super().__init__()
         self.pin = Pin(pin, mode=Pin.IN, pull=pull)
         self.pull = pull

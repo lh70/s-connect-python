@@ -19,9 +19,9 @@ class Gyro(AbstractSensor):
     
     Frequency is kept at default 400000Hz which is the maximum rating for the MPU6050 sensor.
     """
-    def __init__(self, sda=Pin(21), scl=Pin(22)):
+    def __init__(self, sda=21, scl=22):
         super().__init__()
-        self.i2c = SoftI2C(sda=sda, scl=scl)
+        self.i2c = SoftI2C(sda=Pin(sda), scl=Pin(scl))
 
         # MPU6050 stores 7 different values, with 2 registers == bytes per value
         self.buf = bytearray(14)
