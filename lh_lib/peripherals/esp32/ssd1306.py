@@ -9,8 +9,7 @@ WIDTH = const(128)
 HEIGHT = const(64)
 
 
-class SSD1306(AbstractSensor):
-    communication_name = 'display'
+class SSD1306:
 
     """
     Initialises a ssd1306 display output with I2C communication
