@@ -10,8 +10,6 @@ ATT3_6V = ADC.ATTN_11DB
 
 class Poti(AbstractSensor):
 
-    communication_name = 'poti'
-
     """
     pin:integer          must be in range 32-39 inclusive
 

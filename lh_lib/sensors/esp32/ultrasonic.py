@@ -6,8 +6,6 @@ from lh_lib.sensors.sensor import AbstractSensor
 
 class Ultrasonic(AbstractSensor):
 
-    communication_name = 'ultrasonic'
-
     """
     Initialises an ultrasonic sensor with its trigger pin and echo pin
 

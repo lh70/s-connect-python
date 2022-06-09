@@ -5,8 +5,6 @@ from lh_lib.sensors.sensor import AbstractSensor
 
 class Temperature(AbstractSensor):
 
-    communication_name = 'temperature'
-
     """
     sets the internal temperature sensor reading in Fahrenheit as an integer
     """

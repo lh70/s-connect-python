@@ -9,8 +9,6 @@ MPU6050_ADDRESS = const(0x68)
 
 class Gyro(AbstractSensor):
 
-    communication_name = 'gyro'
-
     """
     Initialises I2C communication to the gyro sensor.
     

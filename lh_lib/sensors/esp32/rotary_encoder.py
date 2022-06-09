@@ -5,8 +5,6 @@ from lh_lib.sensors.sensor import AbstractSensor
 
 class RotaryEncoder(AbstractSensor):
 
-    communication_name = 'rotary_encoder'
-
     """
     Reads an incremental rotary encoder.
     The callback functions look bulky, but they take the last state and reachable states in account to reduce jitter.

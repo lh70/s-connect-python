@@ -15,8 +15,6 @@ MINIMUM_MEASURING_INTERVAL_MS = 1000
 
 class DHT11(AbstractSensor):
 
-    communication_name = 'dht11'
-
     """
     Initialises the standard library DHT11 class with the input/output pin
 

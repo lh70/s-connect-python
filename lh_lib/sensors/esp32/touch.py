@@ -5,8 +5,6 @@ from lh_lib.sensors.sensor import AbstractSensor
 
 class Touch(AbstractSensor):
 
-    communication_name = 'touch'
-
     """
     This represents a touch sensor with integrated Logic, where there is only one output pin,
     which digitally represents the touched state.

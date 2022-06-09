@@ -8,8 +8,6 @@ MIN_PULSE_DURATION_US = 2000
 
 class CO2(AbstractSensor):
 
-    communication_name = 'co2'
-
     """
     Initialises a the 5000ppm CO2 sensor MH-Z19B to retrieve its values via the pwm output interrupt driven.
 

@@ -5,8 +5,6 @@ from lh_lib.sensors.sensor import AbstractSensor
 
 class Button(AbstractSensor):
 
-    communication_name = 'button'
-
     """
     Initialises a simple button input
     

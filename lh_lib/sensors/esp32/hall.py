@@ -5,8 +5,6 @@ from lh_lib.sensors.sensor import AbstractSensor
 
 class Hall(AbstractSensor):
 
-    communication_name = 'hall'
-
     """
     sets an integer of range +- unknown representing the current internal hall sensor reading
     """
