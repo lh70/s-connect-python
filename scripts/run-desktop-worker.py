@@ -31,7 +31,7 @@ def run():
 
     worker = Worker(port, SensorManager(Dummy))
 
-    log("Worker started")
+    log(f'Worker started with port {port}')
 
     while True:
         worker.update()

@@ -42,7 +42,7 @@ class Assignment:
                 elif re.match('^out[0-9]+$', kw):
                     proc['kwargs'][kw] = self.pipelines[value].buffer_out
                 elif re.match('^sensor$', kw):
-                    proc['kwargs'][kw] = self.sensor_manager.get_sensor_lease(value)
+                    proc['kwargs'][kw] = self.sensor_manager.get_sensor_lease(value, self.assignment_id)
 
     def cleanup(self):
         for pipeline in self.pipelines.values():
