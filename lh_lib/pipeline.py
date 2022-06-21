@@ -4,6 +4,7 @@ from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownExcep
     AssignmentException
 
 INPUT_PIPELINE_TIMEOUT_MS = 3000
+INPUT_PIPELINE_MAX_VALUES = 4000
 
 
 class AbstractPipeline:
@@ -64,8 +65,8 @@ class AbstractPipeline:
             else:
                 # currently no length check, so ram overflow is possible
                 self.buffer_in += obj
-                if len(self.buffer_in) > 2000:
-                    self.invalidate(f'input buffer length > 2000 : {len(self.buffer_in)}')
+                if len(self.buffer_in) > INPUT_PIPELINE_MAX_VALUES:
+                    self.invalidate(f'input buffer length > {INPUT_PIPELINE_MAX_VALUES} : {len(self.buffer_in)}')
 
     def update_send(self):
         if not self.connected or not self.assignment_initialized:

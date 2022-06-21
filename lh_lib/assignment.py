@@ -1,16 +1,6 @@
-import re
-
 from lh_lib.network_stack.client import Client
 from lh_lib.exceptions import AssignmentException
 from lh_lib.pipeline import InputPipeline, OutputPipeline, LocalPipeline
-
-"""
-Following imports are usable in the dynamic node functions
-"""
-import os
-
-from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
-from lh_lib.logging import DataLogger
 
 
 class Assignment:
@@ -31,18 +21,12 @@ class Assignment:
             self.create_pipeline(pipe_id, pipe_config)
 
         # processing setup
-        self.processing = setup_obj['processing']
-        for proc in self.processing:
-            exec(proc['code'], globals(), locals())
-            proc['run'] = locals()[proc['func_name']]
-            proc['kwargs']['storage'] = {}
-            for kw, value in proc['kwargs'].items():
-                if re.match('^in[0-9]+$', kw):
-                    proc['kwargs'][kw] = self.pipelines[value].buffer_in
-                elif re.match('^out[0-9]+$', kw):
-                    proc['kwargs'][kw] = self.pipelines[value].buffer_out
-                elif re.match('^sensor$', kw):
-                    proc['kwargs'][kw] = self.sensor_manager.get_sensor_lease(value, self.assignment_id)
+        self.processing = []
+        for proc in self.setup_obj['processing']:
+            exec(proc['code'], globals(), globals())
+            proc_obj = globals()[proc['class_name']](**proc['kwargs'])
+            proc_obj.execution_setup(self.pipelines, self.sensor_manager, self.assignment_id)
+            self.processing.append(proc_obj)
 
     def cleanup(self):
         for pipeline in self.pipelines.values():
@@ -57,7 +41,7 @@ class Assignment:
         if self.assignment_initialized:
             # only process and produce values if initialization is finished
             for proc in self.processing:
-                proc['run'](**proc['kwargs'])
+                proc.run()
         else:
             # check if all output pipelines received an assignment-initialization message
             output_pipelines_initialized = True

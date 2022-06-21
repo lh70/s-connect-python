@@ -1,23 +1,30 @@
-def join_with_dup_filter(in0, in1, out0, eval_str='x + y', storage=None):
-    if 'latest_x' not in storage:
-        storage['latest_x'] = None
-        storage['latest_y'] = None
-        storage['last_z'] = None
+from lh_lib.user_node_types import DualInputSingleOutputUserNode
 
-    length = len(in0) if len(in0) > len(in1) else len(in1)
-    for i in range(length):
-        x = in0[i] if i < len(in0) else storage['latest_x']
-        y = in1[i] if i < len(in1) else storage['latest_y']
 
-        if x is not None and y is not None:
-            z = eval(eval_str, {}, {'x': x, 'y': y})
+class JoinWithDupFilter(DualInputSingleOutputUserNode):
 
-            if z != storage['last_z']:
-                out0.append(z)
-                storage['last_z'] = z
+    def __init__(self, in0, in1, out0, eval_str='x + y'):
+        super().__init__(in0, in1, out0)
+        self.code = compile(eval_str, '<string>', 'eval')
+        self.latest_x = None
+        self.latest_y = None
+        self.latest_z = None
 
-        storage['latest_x'] = x
-        storage['latest_y'] = y
+    def run(self):
+        length = len(self.in0) if len(self.in0) > len(self.in1) else len(self.in1)
+        for i in range(length):
+            x = self.in0[i] if i < len(self.in0) else self.latest_x
+            y = self.in1[i] if i < len(self.in1) else self.latest_y
 
-    in0.clear()
-    in1.clear()
+            if x is not None and y is not None:
+                z = eval(self.code, {}, {'x': x, 'y': y})
+
+                if z != self.latest_z:
+                    self.out0.append(z)
+                    self.latest_z = z
+
+            self.latest_x = x
+            self.latest_y = y
+
+        self.in0.clear()
+        self.in1.clear()

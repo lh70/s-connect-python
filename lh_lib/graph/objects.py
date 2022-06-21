@@ -17,12 +17,12 @@ class StrFormatIter:
 class Node:
     instances = []
 
-    def __init__(self, device, func, inputs=(), **kwargs):
+    def __init__(self, device, user_class, inputs=(), **kwargs):
         Node.instances.append(self)
 
         self.device = device
         self.kwargs = kwargs
-        self.func = func
+        self.user_class = user_class
 
         for node in inputs:
             # node is from_node, self is to_node
@@ -64,23 +64,26 @@ class Node:
             else:
                 break
 
-        return {'func_name': self.func.__name__, 'kwargs': kwargs, 'code': inspect.getsource(self.func)}
+        with open(inspect.getsourcefile(self.user_class), 'rt') as f:
+            full_source_code = f.read()
+
+        return {'class_name': self.user_class.__name__, 'kwargs': kwargs, 'code': full_source_code}
 
     def check_signature(self):
-        signature = inspect.signature(self.func)
+        signature = inspect.signature(self.user_class)
 
         malicious_kwargs = set(self.kwargs) - set(signature.parameters)
         if malicious_kwargs:
-            raise Exception(f'Kwargs: {malicious_kwargs} are defined without being in function signature of function: {self.func.__name__}')
+            raise Exception(f'Kwargs: {malicious_kwargs} are defined without being in function signature of function: {self.user_class.__name__}')
 
         for name, param in signature.parameters.items():
             if param.kind == param.POSITIONAL_ONLY:
-                raise Exception(f'Parameter: {name} of function: {self.func.__name__} is POSITIONAL_ONLY, which is not allowed. All Parameters must allow for keyword style supply.')
+                raise Exception(f'Parameter: {name} of function: {self.user_class.__name__} is POSITIONAL_ONLY, which is not allowed. All Parameters must allow for keyword style supply.')
             if name not in self.kwargs:
                 if param.kind == param.VAR_POSITIONAL or param.kind == param.VAR_KEYWORD:
                     pass  # ignore for now or maybe raise exception, because unnecessary parameters should be left out of function signature
                 elif param.default == param.empty:
-                    raise Exception(f'Parameter: {name} of function: {self.func.__name__} has no default value, but is not supplied in kwargs.')
+                    raise Exception(f'Parameter: {name} of function: {self.user_class.__name__} has no default value, but is not supplied in kwargs.')
 
 
 class Edge:

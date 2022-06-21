@@ -1,5 +1,10 @@
-def duplicate(in0, out0, out1, storage=None):
-    for val in in0:
-        out0.append(val)
-        out1.append(val)
-    in0.clear()
+from lh_lib.user_node_types import SingleInputDualOutputUserNode
+
+
+class Duplicate(SingleInputDualOutputUserNode):
+
+    def run(self):
+        for val in self.in0:
+            self.out0.append(val)
+            self.out1.append(val)
+        self.in0.clear()

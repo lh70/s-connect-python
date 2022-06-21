@@ -1,18 +1,23 @@
 import os
 
+from lh_lib.user_node_types import SingleInputNoOutputUserNode
 from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
 
 
-def monitor(in0, time_frame=100, storage=None):
-    if 'values' not in storage:
-        storage['time'] = ticks_ms()
-        storage['values'] = []
+class Monitor(SingleInputNoOutputUserNode):
 
-    storage['values'] += in0
-    in0.clear()
+    def __init__(self, in0, time_frame=100):
+        super().__init__(in0)
+        self.time_frame = time_frame
+        self.time = ticks_ms()
+        self.values = []
 
-    if ticks_ms_diff_to_current(storage['time']) >= time_frame:
-        os.system('cls' if os.name == 'nt' else 'clear')
-        print('Monitor\n\ntimeframe: {}ms\nvalues: {}'.format(time_frame, storage['values']))
-        storage['time'] = ticks_ms()
-        storage['values'] = []
+    def run(self):
+        self.values += self.in0
+        self.in0.clear()
+
+        if ticks_ms_diff_to_current(self.time) >= self.time_frame:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print(f'Monitor\n\ntimeframe: {self.time_frame}ms\nvalues: {self.values}')
+            self.time = ticks_ms()
+            self.values = []
