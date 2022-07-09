@@ -11,7 +11,7 @@ import machine
 # import webrepl
 
 
-WIFI_DEVICE_NAME = 'ESP32-5'
+WIFI_DEVICE_NAME = 'ESP32-6'
 
 WIFI_CREDENTIALS = {
 }  # ssid: password
