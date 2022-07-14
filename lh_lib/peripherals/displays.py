@@ -1,7 +1,7 @@
 from micropython import const
 from machine import Pin, SoftI2C
 
-from lh_lib.included_external_libs.ssd1306 import SSD1306_I2C
+from lh_lib.included_submodules_files.ssd1306 import SSD1306_I2C
 
 
 class SSD1306(SSD1306_I2C):
