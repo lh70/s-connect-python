@@ -123,7 +123,7 @@ def run():
     if RUNNING_MICROPYTHON:
         raise Exception("Call this script on the host platform with your microcontroller connected! (python deployment.py)")
 
-    # set correct working directory for tha case that the script is not called in its directory
+    # set working directory to repository root for the case that the script is not called in its directory
     os.chdir(os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
     print(f'changed working directory to: {os.getcwd()}')
 

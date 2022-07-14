@@ -2,6 +2,7 @@ from micropython import const
 from machine import Pin, SoftI2C
 
 from lh_lib.included_submodules_files.ssd1306 import SSD1306_I2C
+from lh_lib.included_submodules_files.esp32_gpio_lcd import GpioLcd
 
 
 class SSD1306(SSD1306_I2C):
@@ -34,3 +35,11 @@ class SSD1306(SSD1306_I2C):
 
     def __del__(self):
         self.rst.value(0)
+
+
+class ESP32GpioLcd(GpioLcd):
+
+    """
+    We do not need a special wrapper behavior yet and simply expose the provided API
+    """
+    pass
