@@ -27,6 +27,9 @@ if not RUNNING_MICROPYTHON:
 
 
 def run():
+    if '/lh_lib/included_submodules_files' not in sys.path:
+        sys.path.insert(1, '/lh_lib/included_submodules_files')
+
     sensor_manager = SensorManager(Dummy, Poti, Hall, Touch, Temperature, DHT11, Gyro, Ultrasonic, RotaryEncoder, CO2, Button)
 
     worker = Worker(DEFAULT_PORT, sensor_manager)

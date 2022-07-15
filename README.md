@@ -49,3 +49,8 @@ NOT THE START SCRIPT FOR THE COMPUTER FRAMEWORK VERSION.
 The MicroPython main.py script, that gets executed on the esp32's after startup and running boot.py.
 Contains basically the same code as scripts/run-micropython-worker.py. Must also be transferred manually onto the esp32,
 for example with: mpremote fs cp main.py :main.py
+
+
+# Notes for later
+Instead of using the py_lcd module, maybe port https://github.com/arduino-libraries/LiquidCrystal to micropython.
+It seems simple with low overhead.

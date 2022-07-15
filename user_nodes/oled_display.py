@@ -5,7 +5,7 @@ if RUNNING_MICROPYTHON:
     from lh_lib.peripherals.displays import SSD1306
 
 
-class Display(SingleInputNoOutputUserNode):
+class OLEDDisplay(SingleInputNoOutputUserNode):
 
     def __init__(self, in0, format_str='{}'):
         super().__init__(in0)
