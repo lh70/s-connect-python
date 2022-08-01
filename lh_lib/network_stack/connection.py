@@ -8,7 +8,7 @@ from lh_lib.network_stack.buffered_socket import BufferedSocket
 # general maximum for an 32bit unsigned integer value
 MAX_UNSIGNED_INT = 4294967295
 # acknowledgement timeout
-ACKNOWLEDGEMENT_TIMEOUT_MS = 7000
+ACKNOWLEDGEMENT_TIMEOUT_MS = 15000
 
 LENGTH_STRUCT = '!I'
 LENGTH_STRUCT_LENGTH = struct.calcsize(LENGTH_STRUCT)

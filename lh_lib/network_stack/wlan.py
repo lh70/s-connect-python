@@ -31,6 +31,10 @@ latest_connected_network = None
 def connect():
     global latest_connected_network
 
+    # make sure wifi is reset
+    wlan.active(False)
+    wlan.active(True)
+
     while not wlan.isconnected():
         wlan_list = wlan.scan()
 
@@ -40,23 +44,31 @@ def connect():
             wlan.active(True)
             continue
 
+        last_ssid = None
         for ssid, _, _, _, _, _ in wlan_list:
             ssid = ssid.decode()
 
             if ssid in wlan_credentials:
+                last_ssid = ssid
+
                 wlan.connect(ssid, wlan_credentials[ssid])
 
                 start_time = time.ticks_ms()
                 while (not wlan.isconnected()) and (time.ticks_diff(time.ticks_ms(), start_time) < 5000):
-                    pass
+                    time.sleep_ms(200)
 
                 if wlan.isconnected():
                     log('connected to wlan: {}', ssid)
                     latest_connected_network = ssid
                     break
+
         if not wlan.isconnected():
             log('no connectable network found. retrying...')
             time.sleep_ms(200)
+
+            # sometimes it does connect for some reason
+            if wlan.isconnected():
+                latest_connected_network = last_ssid
 
 
 def reconnect():
@@ -64,7 +76,7 @@ def reconnect():
 
     while not wlan.isconnected():
         try:
-            log('reconnecting wifi')
+            log('reconnecting wifi...')
             if wlan.isconnected():
                 return
 
@@ -86,6 +98,8 @@ def reconnect():
             wlan.active(False)
             wlan.active(True)
             attempts += 1
+
+    log('done')
 
 
 def isconnected():

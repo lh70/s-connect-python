@@ -5,6 +5,7 @@ from user_nodes_utility import observe_throughput, CaseStudyDelayObserverBuilder
 from user_nodes.sensor_read import SensorRead
 from user_nodes.print_queue import PrintQueue
 from user_nodes.join import Join
+from user_nodes.join_with_dup_filter import JoinWithDupFilter
 from user_nodes.map import Map
 from user_nodes.button_filter import ButtonFilter
 from user_nodes.button_to_single_emit import ButtonToSingleEmit
@@ -50,7 +51,7 @@ def get_distribution():
     button_filtered = Node(esp_32_2, ButtonFilter, [raw_button], flip_threshold=1)
     button_single_emit = Node(esp_32_2, ButtonToSingleEmit, [button_filtered])
 
-    joined_selection = Node(esp_32_1, Join, [selection_int, button_single_emit], eval_str='(x, y)')
+    joined_selection = Node(esp_32_1, JoinWithDupFilter, [selection_int, button_single_emit], eval_str='(x, y)')
 
     duplicator_0 = Node(esp_32_3, Duplicate, [joined_selection])
     duplicator_1 = Node(esp_32_4, Duplicate, [duplicator_0])
@@ -63,13 +64,13 @@ def get_distribution():
     temperature_filtered = Node(esp_32_4, Map, [raw_dht11], eval_str='x[0] > 45')
     distance_filtered = Node(esp_32_5, Map, [raw_ultrasonic], eval_str='x[0] is not -1 and x[1] < 10')
 
-    co2_bool = Node(esp_32_3, Join, [co2_toggle, co2_filtered], eval_str='y if x else False')
-    dht11_bool = Node(esp_32_4, Join, [temperature_toggle, temperature_filtered], eval_str='y if x else False')
-    ultrasonic_bool = Node(esp_32_5, Join, [distance_toggle, distance_filtered], eval_str='False if x else False')  # y if x else False
+    co2_bool = Node(esp_32_3, JoinWithDupFilter, [co2_toggle, co2_filtered], eval_str='y if x else False')
+    dht11_bool = Node(esp_32_4, JoinWithDupFilter, [temperature_toggle, temperature_filtered], eval_str='y if x else False')
+    ultrasonic_bool = Node(esp_32_5, JoinWithDupFilter, [distance_toggle, distance_filtered], eval_str='False if x else False')  # y if x else False
 
-    joined = Node(esp_32_4, Join, [co2_bool, dht11_bool], eval_str='x or y')
+    joined = Node(esp_32_4, JoinWithDupFilter, [co2_bool, dht11_bool], eval_str='x or y')
     alarm_ser = delay_observer.output(observe_throughput(pc_observer_6,
-                                                         Node(esp_32_5, Join, [joined, ultrasonic_bool], eval_str='x or y'), DATA_LOG_PATH + 'total.log'))
+                                                         Node(esp_32_5, JoinWithDupFilter, [joined, ultrasonic_bool], eval_str='x or y'), DATA_LOG_PATH + 'total.log'))
 
     output = Node(pc_local, PrintQueue, [alarm_ser], time_frame=100)
 

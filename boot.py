@@ -12,12 +12,12 @@ import machine
 try:
     from lh_lib.network_stack.wlan import connect, ifconfig
     connect()
+    print(f'network config: {ifconfig()}\n')
 except KeyboardInterrupt:
     print('interrupt by user...moving on without wlan\n')
 except ImportError:
     print('lh_lib does not exist...moving on without wlan\n')
-else:
-    print(f'network config: {ifconfig()}\n')
+
 
 machine.freq(240000000)
 print('adjusted machine frequency to max: 240MHz (default: 160MHz)\n\n')
