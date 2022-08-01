@@ -18,6 +18,7 @@ from lh_lib.sensors.esp32.rotary_encoder import RotaryEncoder
 from lh_lib.sensors.esp32.co2 import CO2
 from lh_lib.sensors.esp32.button import Button
 from lh_lib.network_stack.server import DEFAULT_PORT
+from lh_lib.network_stack.wlan import isconnected, reconnect
 
 
 RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
@@ -27,8 +28,13 @@ if not RUNNING_MICROPYTHON:
 
 
 def run():
+    # other lib files must be directly accessible via python-path
     if '/lh_lib/included_submodules_files' not in sys.path:
         sys.path.insert(1, '/lh_lib/included_submodules_files')
+
+    # if wlan disconnected after boot script, reconnect
+    if not isconnected():
+        reconnect()
 
     sensor_manager = SensorManager(Dummy, Poti, Hall, Touch, Temperature, DHT11, Gyro, Ultrasonic, RotaryEncoder, CO2, Button)
 

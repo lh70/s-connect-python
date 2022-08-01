@@ -81,3 +81,7 @@ def reconnect():
 
 def isconnected():
     return wlan.isconnected()
+
+
+def ifconfig():
+    return wlan.ifconfig()

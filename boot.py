@@ -5,20 +5,19 @@ This script gets executed on every startup before main.py.
 We will activate WiFi station-connection, but not WebREPl (web cli) as it is not reliable
 """
 
-import network
 import machine
 # import webrepl
 
 
 try:
-    from lh_lib.network_stack.wlan import connect
+    from lh_lib.network_stack.wlan import connect, ifconfig
     connect()
 except KeyboardInterrupt:
     print('interrupt by user...moving on without wlan\n')
 except ImportError:
     print('lh_lib does not exist...moving on without wlan\n')
 else:
-    print(f'network config: {network.WLAN(network.STA_IF).ifconfig()}\n')
+    print(f'network config: {ifconfig()}\n')
 
 machine.freq(240000000)
 print('adjusted machine frequency to max: 240MHz (default: 160MHz)\n\n')
