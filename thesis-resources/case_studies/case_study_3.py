@@ -18,10 +18,10 @@ def get_distribution():
     time_frame = 100
 
     esp_32_1 = Device('192.168.2.177', 8090, time_frame)  # 0
-    esp_32_2 = Device('192.168.2.146', 8090, time_frame)  # 1
+    esp_32_2 = Device('192.168.2.124', 8090, time_frame)  # 1
     esp_32_3 = Device('192.168.2.182', 8090, time_frame)  # 2
     esp_32_4 = Device('192.168.2.162', 8090, time_frame)  # 3
-    esp_32_5 = Device('192.168.2.124', 8090, time_frame)  # 4
+    esp_32_5 = Device('192.168.2.146', 8090, time_frame)  # 4
     pc_local = Device('192.168.2.163', 8090, time_frame)  # 5
 
     pc_observer_0 = Device('192.168.2.163', 8100, time_frame)  # 6
