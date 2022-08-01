@@ -1,6 +1,10 @@
 import socket
 
 from lh_lib.network_stack.connection import Connection
+from lh_lib.constants import RUNNING_MICROPYTHON
+
+if RUNNING_MICROPYTHON:
+    from lh_lib.network_stack.wlan import isconnected, reconnect
 
 
 DEFAULT_PORT = 8090
@@ -21,7 +25,7 @@ class Server:
         # allow immediate rebind to a floating socket (last app crashed or otherwise non fully closed server socket)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # bind to all interfaces available
-        self.socket.bind(('', server_port))
+        self.socket.bind(('0.0.0.0', server_port))
         # We will accept a maximum of x connect requests into our connect queue before we are busy
         # A connection gets out of this queue on socket creation
         self.socket.listen(max_connect_requests)
@@ -36,6 +40,9 @@ class Server:
     """
 
     def accept(self):
+        if RUNNING_MICROPYTHON and not isconnected():
+            reconnect()
+
         try:
             client_socket, address = self.socket.accept()
         except OSError:

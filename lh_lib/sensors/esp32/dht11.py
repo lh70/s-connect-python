@@ -18,6 +18,8 @@ class DHT11(AbstractSensor):
     """
     Initialises the standard library DHT11 class with the input/output pin
 
+    pins left to right seen from grill in front: VCC, data-pin, not used, GND
+
     pin:integer can be one of all available GPIO pins: 0-19, 21-23, 25-27, 32-33
                 it cannot be one of GPIO pins: 34-39 (input only pins)
                 it is NOT recommended to pick one of the following pins: (1, 3) -> serial, (6, 7, 8, 11, 16, 17) -> embedded flash

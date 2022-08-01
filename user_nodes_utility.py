@@ -7,7 +7,7 @@ from user_nodes.print_queue import PrintQueue
 
 
 def observe_throughput(device, node, filepath=False):
-    dup = Node(device, Duplicate, [node])
+    dup = Node(node.device, Duplicate, [node])
     Node(device, ThroughputObserver, [dup], filepath=filepath)
 
     return dup

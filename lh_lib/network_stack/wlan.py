@@ -48,7 +48,7 @@ def connect():
 
                 start_time = time.ticks_ms()
                 while (not wlan.isconnected()) and (time.ticks_diff(time.ticks_ms(), start_time) < 5000):
-                    time.sleep_ms(20)
+                    pass
 
                 if wlan.isconnected():
                     log('connected to wlan: {}', ssid)
@@ -60,23 +60,32 @@ def connect():
 
 
 def reconnect():
-    if wlan.isconnected():
-        return
+    attempts = 0
 
-    if latest_connected_network is None:
-        raise Exception('reconnect is called before connect')
+    while not wlan.isconnected():
+        try:
+            log('reconnecting wifi')
+            if wlan.isconnected():
+                return
 
-    # make sure that the wlan module does not hang
-    if not wlan.scan():
-        wlan.active(False)
-        wlan.active(True)
+            if latest_connected_network is None:
+                raise Exception('reconnect is called before connect')
 
-    ssid = latest_connected_network
-    wlan.connect(ssid, wlan_credentials[ssid])
+            wlan.active(True)
 
-    start_time = time.ticks_ms()
-    while (not wlan.isconnected()) and (time.ticks_diff(time.ticks_ms(), start_time) < 5000):
-        time.sleep_us(100)
+            ssid = latest_connected_network
+            wlan.connect(ssid, wlan_credentials[ssid])
+
+            start_time = time.ticks_ms()
+            while (not wlan.isconnected()) and (time.ticks_diff(time.ticks_ms(), start_time) < 5000):
+                pass
+        except OSError:
+            if attempts >= 2:
+                raise
+
+            wlan.active(False)
+            wlan.active(True)
+            attempts += 1
 
 
 def isconnected():
