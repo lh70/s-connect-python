@@ -11,6 +11,7 @@ from user_nodes.button_filter import ButtonFilter
 from user_nodes.button_to_single_emit import ButtonToSingleEmit
 from user_nodes.duplicate import Duplicate
 from user_nodes.toggle_state import ToggleState
+from user_nodes.throttle import Throttle
 
 DATA_LOG_PATH = 'D:/temp/' + 'CS1_SendVariable_100ms_JoinNoFilter' + '/'
 
@@ -35,18 +36,22 @@ def get_distribution():
 
     delay_observer = CaseStudyDelayObserverBuilder(pc_observer_0, DATA_LOG_PATH + 'delay.log')
 
-    raw_co2 = observe_throughput(pc_observer_1,
-                                 Node(esp_32_3, SensorRead, sensor_class_name='CO2'), DATA_LOG_PATH + 'co2.log')
-    raw_dht11 = observe_throughput(pc_observer_2,
-                                   Node(esp_32_4, SensorRead, sensor_class_name='DHT11'), DATA_LOG_PATH + 'dht11.log')
-    raw_ultrasonic = observe_throughput(pc_observer_3,
-                                        Node(esp_32_5, SensorRead, sensor_class_name='Ultrasonic'), DATA_LOG_PATH + 'ultrasonic.log')
-    raw_rotary_encoder = observe_throughput(pc_observer_4,
-                                            Node(esp_32_1, SensorRead, sensor_class_name='RotaryEncoder'), DATA_LOG_PATH + 'rotary_encoder.log')
+    throttled_co2 = Node(esp_32_3, Throttle, [Node(esp_32_3, SensorRead, sensor_class_name='CO2')])
+    observed_co2 = observe_throughput(pc_observer_1, throttled_co2, DATA_LOG_PATH + 'co2.log')
+
+    throttled_dht11 = Node(esp_32_4, Throttle, [Node(esp_32_4, SensorRead, sensor_class_name='DHT11')])
+    observed_dht11 = observe_throughput(pc_observer_2, throttled_dht11, DATA_LOG_PATH + 'dht11.log')
+
+    throttled_ultrasonic = Node(esp_32_5, Throttle, [Node(esp_32_5, SensorRead, sensor_class_name='Ultrasonic')])
+    observed_ultrasonic = observe_throughput(pc_observer_3, throttled_ultrasonic, DATA_LOG_PATH + 'ultrasonic.log')
+
+    throttled_rotary_encoder = Node(esp_32_1, Throttle, [Node(esp_32_1, SensorRead, sensor_class_name='RotaryEncoder')])
+    observed_rotary_encoder = observe_throughput(pc_observer_4, throttled_rotary_encoder, DATA_LOG_PATH + 'rotary_encoder.log')
+
     raw_button = delay_observer.input(observe_throughput(pc_observer_5,
                                                          Node(esp_32_2, SensorRead, sensor_class_name='Button'), DATA_LOG_PATH + 'button.log'))
 
-    selection_int = Node(esp_32_1, Map, [raw_rotary_encoder], eval_str='int(x/2) % 3')
+    selection_int = Node(esp_32_1, Map, [observed_rotary_encoder], eval_str='int(x/2) % 3')
 
     button_filtered = Node(esp_32_2, ButtonFilter, [raw_button], flip_threshold=1)
     button_single_emit = Node(esp_32_2, ButtonToSingleEmit, [button_filtered])
@@ -60,9 +65,9 @@ def get_distribution():
     temperature_toggle = Node(esp_32_4, ToggleState, [duplicator_1], eval_str='x[0]==1 and x[1]', initial_state=True)
     distance_toggle = Node(esp_32_5, ToggleState, [duplicator_1], eval_str='x[0]==2 and x[1]', initial_state=True)
 
-    co2_filtered = Node(esp_32_3, Map, [raw_co2], eval_str='x[2] > 0')
-    temperature_filtered = Node(esp_32_4, Map, [raw_dht11], eval_str='x[0] > 45')
-    distance_filtered = Node(esp_32_5, Map, [raw_ultrasonic], eval_str='x[0] is not -1 and x[1] < 10')
+    co2_filtered = Node(esp_32_3, Map, [observed_co2], eval_str='x[2] > 0')
+    temperature_filtered = Node(esp_32_4, Map, [observed_dht11], eval_str='x[0] > 45')
+    distance_filtered = Node(esp_32_5, Map, [observed_ultrasonic], eval_str='x[0] is not -1 and x[1] < 10')
 
     co2_bool = Node(esp_32_3, JoinWithDupFilter, [co2_toggle, co2_filtered], eval_str='y if x else False')
     dht11_bool = Node(esp_32_4, JoinWithDupFilter, [temperature_toggle, temperature_filtered], eval_str='y if x else False')
