@@ -4,7 +4,7 @@ from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
 
 if RUNNING_MICROPYTHON:
     from machine import Pin
-    from lh_lib.peripherals.displays import ESP32GpioLcd
+    from lh_lib.peripherals.esp32.displays import ESP32GpioLcd
 
 
 class LCDDisplay(SingleInputNoOutputUserNode):
