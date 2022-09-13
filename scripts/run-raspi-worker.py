@@ -1,5 +1,5 @@
 """
-to be run on a console. starts the framework on a computer
+to be run on a console. starts the framework on a raspberry pi
 """
 
 import os
@@ -15,11 +15,12 @@ from lh_lib.network_stack.server import DEFAULT_PORT
 from lh_lib.worker import Worker
 from lh_lib.sensors.manage import SensorManager
 from lh_lib.sensors.esp32.dummy import Dummy
-from lh_lib.constants import RUNNING_MICROPYTHON
+from lh_lib.sensors.raspi.gyro import Gyro
+from lh_lib.constants import PLATFORMS, PLATFORM
 
 
-if RUNNING_MICROPYTHON:
-    raise Exception("Run this script in a CPython environment, not micropython! (python scripts/run-desktop-worker.py)")
+if PLATFORM != PLATFORMS.RASPBERRYPI:
+    raise Exception("Please run this script in on a Raspberry Pi!")
 
 
 def run():
@@ -28,7 +29,7 @@ def run():
     else:
         port = DEFAULT_PORT
 
-    worker = Worker(port, SensorManager(Dummy))
+    worker = Worker(port, SensorManager(Dummy, Gyro))
 
     log(f'Worker started with port {port}')
 

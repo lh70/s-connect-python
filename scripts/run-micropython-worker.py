@@ -19,9 +19,8 @@ from lh_lib.sensors.esp32.co2 import CO2
 from lh_lib.sensors.esp32.button import Button
 from lh_lib.network_stack.server import DEFAULT_PORT
 from lh_lib.network_stack.wlan import isconnected, reconnect
+from lh_lib.constants import RUNNING_MICROPYTHON
 
-
-RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
 
 if not RUNNING_MICROPYTHON:
     raise Exception("Call this script on the microcontroller directly! (mpremote run scripts/run-micropython-worker.py)")
