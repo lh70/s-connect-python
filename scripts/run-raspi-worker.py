@@ -14,6 +14,7 @@ except ImportError:
 from lh_lib.network_stack.server import DEFAULT_PORT
 from lh_lib.worker import Worker
 from lh_lib.sensors.manage import SensorManager
+from lh_lib.sensors.raspi.button import Button
 from lh_lib.sensors.raspi.dummy import Dummy
 from lh_lib.sensors.raspi.gyro import Gyro
 from lh_lib.constants import PLATFORMS, PLATFORM
@@ -29,7 +30,7 @@ def run():
     else:
         port = DEFAULT_PORT
 
-    worker = Worker(port, SensorManager(Dummy, Gyro))
+    worker = Worker(port, SensorManager(Button, Dummy, Gyro))
 
     log(f'Worker started with port {port}')
 
