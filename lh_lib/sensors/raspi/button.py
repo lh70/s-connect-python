@@ -21,4 +21,4 @@ class Button(AbstractSensor):
     sets the sensors value to True if the button is pressed and to False if it is not pressed
     """
     def update(self):
-        self.value = bool(self.gpioButton.value())
+        self.value = bool(self.gpioButton.value)
