@@ -14,13 +14,13 @@ except ImportError:
 from lh_lib.network_stack.server import DEFAULT_PORT
 from lh_lib.worker import Worker
 from lh_lib.sensors.manage import SensorManager
-from lh_lib.sensors.esp32.dummy import Dummy
+from lh_lib.sensors.raspi.dummy import Dummy
 from lh_lib.sensors.raspi.gyro import Gyro
 from lh_lib.constants import PLATFORMS, PLATFORM
 
 
 if PLATFORM != PLATFORMS.RASPBERRYPI:
-    raise Exception("Please run this script in on a Raspberry Pi!")
+    raise Exception("Please run this script on a Raspberry Pi!")
 
 
 def run():

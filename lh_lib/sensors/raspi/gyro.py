@@ -19,6 +19,7 @@ class Gyro(AbstractSensor):
     SDA -> GPIO 2
     SCL -> GPIO 3
     (we do not support I2C bus 0 with GPIO 0 and 1 as they are typically used internally to interact with EEPROM)
+        further information about the GPIO: https://pinout.xyz
 
     The following sensor pins must be connected: VCC, GND, SCL, SDA
     VCC can be 3.3-5V with the GY-521 breakout board (included voltage regulator) (The standalone sensor needs 3.3V)
