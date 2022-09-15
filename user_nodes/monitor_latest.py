@@ -6,7 +6,7 @@ from lh_lib.user_node_types import SingleInputNoOutputUserNode
 class MonitorLatest(SingleInputNoOutputUserNode):
 
     def run(self):
-        if len(self.in0 > 0):
+        if len(self.in0) > 0:
             os.system('cls' if os.name == 'nt' else 'clear')
             print(f'MonitorLatest\n\nvalue: {self.in0[-1]}')
 
