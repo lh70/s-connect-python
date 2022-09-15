@@ -11,17 +11,15 @@ class Button(AbstractSensor):
     pin:integer can be one of all available GPIO pins: 0-19, 21-23, 25-27, 32-39
                 it is NOT recommended to pick one of the following pins: (1, 3) -> serial, (6, 7, 8, 11, 16, 17) -> embedded flash
     
-    pull:CONSTANT (default=Pin.PULL_UP) can be one of Pin.PULL_UP, Pin.PULL_DOWN, None
-    
-    Note: logic considers pull=None to read states as Pin.PULL_DOWN -> 1=>True, 0=>False
+    pull_up:bool whether to use an internal pull_up resistor on the input or not
     """
-    def __init__(self, pin=14, pull=Pin.PULL_UP):
+    def __init__(self, pin=14, pull_up=True):
         super().__init__()
-        self.pin = Pin(pin, mode=Pin.IN, pull=pull)
-        self.pull = pull
+        self.pin = Pin(pin, mode=Pin.IN, pull=Pin.PULL_UP if pull_up else Pin.PULL_DOWN)
+        self.pull_up = pull_up
 
     """
     sets the sensors value to True if the button is pressed and to False if it is not pressed
     """
     def update(self):
-        self.value = bool(self.pin.value() ^ (self.pull == Pin.PULL_UP))
+        self.value = bool(self.pin.value() ^ self.pull_up)
