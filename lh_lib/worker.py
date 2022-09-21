@@ -86,11 +86,11 @@ class Worker:
             elif message_type == 'pipeline_request':
                 assignment_id = message_content['assignment_id']
                 pipe_id = message_content['pipe_id']
-                time_frame = message_content['time_frame']
-                values_per_time_frame = message_content['values_per_time_frame']
+                time_frame_ms = message_content['time_frame_ms']
+                heartbeat_ms = message_content['heartbeat_ms']
 
                 if assignment_id in self.assignments:
-                    self.assignments[assignment_id].assign_output_pipeline(conn, pipe_id, time_frame, values_per_time_frame)
+                    self.assignments[assignment_id].assign_output_pipeline(conn, pipe_id, time_frame_ms, heartbeat_ms)
                     self.general_connections.remove(conn)
                     log('promoting general connection {} to output pipeline connection on assignment {} with pipe-id {} | num general connections: {}', conn.address, assignment_id, pipe_id, len(self.general_connections))
                 else:

@@ -9,7 +9,7 @@ INPUT_PIPELINE_MAX_VALUES = 4000
 
 class AbstractPipeline:
 
-    def __init__(self, pipe_id, time_frame, values_per_time_frame):
+    def __init__(self, pipe_id, time_frame_ms, heartbeat_ms):
         self.conn = None
         self.pipe_id = pipe_id
 
@@ -22,8 +22,8 @@ class AbstractPipeline:
         self.buffer_in = []
         self.buffer_out = []
 
-        self.time_frame = time_frame
-        self.values_per_time_frame = values_per_time_frame
+        self.time_frame_ms = time_frame_ms
+        self.heartbeat_ms = heartbeat_ms
 
         self.last_time_frame = 0
 
@@ -73,9 +73,7 @@ class AbstractPipeline:
             self.buffer_out.clear()
             return
 
-        # if self.buffer_out and (self.time_frame is 0 or ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
-
-        if (self.buffer_out and self.time_frame == 0) or (self.time_frame != 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame):
+        if (self.time_frame_ms == 0 and (self.buffer_out or ticks_ms_diff_to_current(self.last_time_frame) >= self.heartbeat_ms)) or (self.time_frame_ms != 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame_ms):
             try:
                 self.conn.send(self.buffer_out)
                 # log("sending message | len: {}", len(self.buffer_out))
@@ -92,8 +90,8 @@ class AbstractPipeline:
 
 class InputPipeline(AbstractPipeline):
 
-    def __init__(self, conn, pipe_id, time_frame, values_per_time_frame):
-        super().__init__(pipe_id, time_frame, values_per_time_frame)
+    def __init__(self, conn, pipe_id, time_frame_ms, heartbeat_ms):
+        super().__init__(pipe_id, time_frame_ms, heartbeat_ms)
         self.conn = conn
         self.connected = True
 
@@ -113,12 +111,12 @@ class OutputPipeline(AbstractPipeline):
     def __init__(self, pipe_id):
         super().__init__(pipe_id, 0, 0)
 
-    def activate(self, conn, time_frame, values_per_time_frame):
+    def activate(self, conn, time_frame_ms, heartbeat_ms):
         self.conn = conn
         self.connected = True
 
-        self.time_frame = time_frame
-        self.values_per_time_frame = values_per_time_frame
+        self.time_frame_ms = time_frame_ms
+        self.heartbeat_ms = heartbeat_ms
 
         self.last_data_exchange = ticks_ms()  # reset because between object creation and being connected can be more than 3 seconds
 

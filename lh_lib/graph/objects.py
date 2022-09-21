@@ -109,8 +109,8 @@ class Edge:
                 'type': 'input',
                 'host': 'localhost',
                 'port': self.node_from.device.port,
-                'time_frame': self.node_to.device.max_time_frame,
-                'values_per_time_frame': self.node_to.device.max_values_per_time_frame
+                'time_frame_ms': self.node_to.device.time_frame_ms,
+                'heartbeat_ms': self.node_to.device.heartbeat_ms
             }
         else:
             pipeline_from_device = {'type': 'output'}
@@ -118,8 +118,8 @@ class Edge:
                 'type': 'input',
                 'host': self.node_from.device.host,
                 'port': self.node_from.device.port,
-                'time_frame': self.node_to.device.max_time_frame,
-                'values_per_time_frame': self.node_to.device.max_values_per_time_frame
+                'time_frame_ms': self.node_to.device.time_frame_ms,
+                'heartbeat_ms': self.node_to.device.heartbeat_ms
             }
 
         return self.node_from.device, pipeline_from_device, self.node_to.device, pipeline_to_device

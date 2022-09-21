@@ -69,8 +69,8 @@ class Assignment:
         if pipe_type == 'input':
             host = pipeline_config['host']
             port = pipeline_config['port']
-            time_frame = pipeline_config['time_frame']
-            values_per_time_frame = pipeline_config['values_per_time_frame']
+            time_frame_ms = pipeline_config['time_frame_ms']
+            heartbeat_ms = pipeline_config['heartbeat_ms']
 
             conn = Client(host, port)
             conn.send({
@@ -78,12 +78,12 @@ class Assignment:
                 'content': {
                     'assignment_id': self.assignment_id,
                     'pipe_id': pipe_id,
-                    'time_frame': time_frame,
-                    'values_per_time_frame': values_per_time_frame
+                    'time_frame_ms': time_frame_ms,
+                    'heartbeat_ms': heartbeat_ms,
                 }
             })
             conn.recv_acknowledgement()
-            self.pipelines[pipe_id] = InputPipeline(conn, pipe_id, time_frame, values_per_time_frame)
+            self.pipelines[pipe_id] = InputPipeline(conn, pipe_id, time_frame_ms, heartbeat_ms)
         elif pipe_type == 'output':
             self.pipelines[pipe_id] = OutputPipeline(pipe_id)  # dummy (invalid) pipeline, gets valid on pipeline request
         elif pipe_type == 'local':
@@ -91,11 +91,11 @@ class Assignment:
         else:
             raise AssignmentException(f'pipeline type {pipe_type} does not exist (during creating pipeline {pipe_id})')
 
-    def assign_output_pipeline(self, conn, pipe_id, time_frame, values_per_time_frame):
+    def assign_output_pipeline(self, conn, pipe_id, time_frame_ms, heartbeat_ms):
         if pipe_id in self.pipelines:
             if self.pipelines[pipe_id].connected:
                 raise AssignmentException(f'pipe-id {pipe_id} has already a valid pipeline connection (during assign output pipeline)')
             else:
-                self.pipelines[pipe_id].activate(conn, time_frame, values_per_time_frame)
+                self.pipelines[pipe_id].activate(conn, time_frame_ms, heartbeat_ms)
         else:
             raise AssignmentException(f'pipe-id {pipe_id} does not exists in outputs of assignment {self.assignment_id}')

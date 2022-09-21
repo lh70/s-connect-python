@@ -1,3 +1,5 @@
+import json
+
 from lh_lib.network_stack.client import Client
 
 
@@ -6,7 +8,7 @@ class Device:
     instances = []
     device_counter = 0
 
-    def __init__(self, host='localhost', port=8090, max_time_frame=100, max_values_per_time_frame=0):
+    def __init__(self, host='localhost', port=8090, time_frame_ms=100, heartbeat_ms=100):
         self.id = str(Device.device_counter)
         Device.device_counter += 1
 
@@ -17,8 +19,8 @@ class Device:
         Device.instances.append(self)
         self.host = host
         self.port = port
-        self.max_time_frame = max_time_frame
-        self.max_values_per_time_frame = max_values_per_time_frame
+        self.time_frame_ms = time_frame_ms
+        self.heartbeat_ms = heartbeat_ms
 
     def remove_assignment(self, assignment_id):
         conn = Client(self.host, self.port)
@@ -34,3 +36,11 @@ class Device:
 
     def __repr__(self):
         return f'Device {self.id} {self.host}:{self.port}'
+
+    def toJSON(self):
+        return json.dumps({
+            'host': self.host,
+            'port': self.port,
+            'time_frame_ms': self.time_frame_ms,
+            'heartbeat_ms': self.heartbeat_ms
+        })
