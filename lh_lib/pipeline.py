@@ -68,15 +68,20 @@ class AbstractPipeline:
                 if len(self.buffer_in) > INPUT_PIPELINE_MAX_VALUES:
                     self.invalidate(f'input buffer length > {INPUT_PIPELINE_MAX_VALUES} : {len(self.buffer_in)}')
 
+    def must_send(self):
+        if self.time_frame_ms == 0:
+            return bool(self.buffer_out) or ticks_ms_diff_to_current(self.last_time_frame) >= self.heartbeat_ms
+        else:
+            return ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame_ms
+
     def update_send(self):
         if not self.connected or not self.assignment_initialized:
             self.buffer_out.clear()
             return
 
-        if (self.time_frame_ms == 0 and (self.buffer_out or ticks_ms_diff_to_current(self.last_time_frame) >= self.heartbeat_ms)) or (self.time_frame_ms != 0 and ticks_ms_diff_to_current(self.last_time_frame) >= self.time_frame_ms):
+        if self.must_send():
             try:
                 self.conn.send(self.buffer_out)
-                # log("sending message | len: {}", len(self.buffer_out))
             except ConnectionClosedDownException as e:
                 self.invalidate(f'connection closed down: {e}')
             else:
@@ -109,7 +114,7 @@ class InputPipeline(AbstractPipeline):
 class OutputPipeline(AbstractPipeline):
 
     def __init__(self, pipe_id):
-        super().__init__(pipe_id, 0, 0)
+        super().__init__(pipe_id, 0, 100)
 
     def activate(self, conn, time_frame_ms, heartbeat_ms):
         self.conn = conn
@@ -140,7 +145,7 @@ class OutputPipeline(AbstractPipeline):
 class LocalPipeline(AbstractPipeline):
 
     def __init__(self, pipe_id):
-        super().__init__(pipe_id, 0, 0)
+        super().__init__(pipe_id, 0, 100)
         self.buffer_out = self.buffer_in
         self.connected = True
         self.assignment_initialized = True

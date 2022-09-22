@@ -46,7 +46,7 @@ class Flags:
             print("could not retrieve flags.json. creating new one.")
             self.old_flags = {}
         else:
-            print("using exisiting flags.json for reference.")
+            print("using existing flags.json for reference.")
             with open('build/flags.json', 'r') as f:
                 self.old_flags = json.load(f)
 

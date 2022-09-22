@@ -17,22 +17,23 @@ DATA_LOG_PATH = 'D:/temp/' + 'CS1_SendVariable_100ms_JoinNoFilter' + '/'
 
 
 def get_distribution():
-    time_frame = 100
+    time_frame_ms = 0
+    heartbeat_ms = 1000
 
-    esp_32_1 = Device('192.168.2.177', 8090, time_frame)  # 0
-    esp_32_2 = Device('192.168.2.124', 8090, time_frame)  # 1
-    esp_32_3 = Device('192.168.2.182', 8090, time_frame)  # 2
-    esp_32_4 = Device('192.168.2.162', 8090, time_frame)  # 3
-    esp_32_5 = Device('192.168.2.146', 8090, time_frame)  # 4
-    pc_local = Device('192.168.2.163', 8090, time_frame)  # 5
+    esp_32_1 = Device('192.168.2.177', 8090, time_frame_ms, heartbeat_ms)  # 0
+    esp_32_2 = Device('192.168.2.124', 8090, time_frame_ms, heartbeat_ms)  # 1
+    esp_32_3 = Device('192.168.2.182', 8090, time_frame_ms, heartbeat_ms)  # 2
+    esp_32_4 = Device('192.168.2.162', 8090, time_frame_ms, heartbeat_ms)  # 3
+    esp_32_5 = Device('192.168.2.146', 8090, time_frame_ms, heartbeat_ms)  # 4
+    pc_local = Device('192.168.2.163', 8090, time_frame_ms, heartbeat_ms)  # 5
 
-    pc_observer_0 = Device('192.168.2.163', 8100, time_frame)  # 6
-    pc_observer_1 = Device('192.168.2.163', 8101, time_frame)  # 7
-    pc_observer_2 = Device('192.168.2.163', 8102, time_frame)  # 8
-    pc_observer_3 = Device('192.168.2.163', 8103, time_frame)  # 9
-    pc_observer_4 = Device('192.168.2.163', 8104, time_frame)  # 10
-    pc_observer_5 = Device('192.168.2.163', 8105, time_frame)  # 11
-    pc_observer_6 = Device('192.168.2.163', 8106, time_frame)  # 12
+    pc_observer_0 = Device('192.168.2.163', 8100, time_frame_ms, heartbeat_ms)  # 6
+    pc_observer_1 = Device('192.168.2.163', 8101, time_frame_ms, heartbeat_ms)  # 7
+    pc_observer_2 = Device('192.168.2.163', 8102, time_frame_ms, heartbeat_ms)  # 8
+    pc_observer_3 = Device('192.168.2.163', 8103, time_frame_ms, heartbeat_ms)  # 9
+    pc_observer_4 = Device('192.168.2.163', 8104, time_frame_ms, heartbeat_ms)  # 10
+    pc_observer_5 = Device('192.168.2.163', 8105, time_frame_ms, heartbeat_ms)  # 11
+    pc_observer_6 = Device('192.168.2.163', 8106, time_frame_ms, heartbeat_ms)  # 12
 
     delay_observer = CaseStudyDelayObserverBuilder(pc_observer_0, DATA_LOG_PATH + 'delay.log')
 
