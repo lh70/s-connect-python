@@ -1,4 +1,4 @@
-from gpiozero import RotaryEncoder
+from gpiozero import RotaryEncoder as GPIOZERORotaryEncoder
 
 from lh_lib.sensors.sensor import AbstractSensor
 
@@ -18,7 +18,7 @@ class RotaryEncoder(AbstractSensor):
 
     def __init__(self, clk_pin=17, dt_pin=27):
         super().__init__()
-        self.sensor = RotaryEncoder(clk_pin, dt_pin)
+        self.sensor = GPIOZERORotaryEncoder(clk_pin, dt_pin)
 
     """
     updates the readout value according to scale. Cuts value to integer, because we want to output whole ticks.
