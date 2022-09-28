@@ -17,6 +17,7 @@ from lh_lib.sensors.manage import SensorManager
 from lh_lib.sensors.raspi.button import Button
 from lh_lib.sensors.raspi.dummy import Dummy
 from lh_lib.sensors.raspi.gyro import Gyro
+from lh_lib.sensors.raspi.co2 import CO2
 from lh_lib.constants import PLATFORMS, PLATFORM
 
 
@@ -30,7 +31,7 @@ def run():
     else:
         port = DEFAULT_PORT
 
-    worker = Worker(port, SensorManager(Button, Dummy, Gyro))
+    worker = Worker(port, SensorManager(Button, Dummy, Gyro, CO2))
 
     log(f'Worker started with port {port}')
 
