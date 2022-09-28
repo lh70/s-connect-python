@@ -23,8 +23,6 @@ class RotaryEncoder(AbstractSensor):
         self.scale = scale
         self._pos = 0
 
-        self.old_val = None
-
         self.val_old_clk_pin = self.clk_pin.value()
         self.val_old_dt_pin = self.dt_pin.value()
 
