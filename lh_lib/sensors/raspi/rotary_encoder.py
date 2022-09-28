@@ -18,7 +18,6 @@ class RotaryEncoder(AbstractSensor):
     """
 
     def __init__(self, clk_pin=17, dt_pin=27, scale=0.5, use_gpio_implementation=False):
-        super().__init__()
         self.use_gpio_implementation = use_gpio_implementation
 
         if self.use_gpio_implementation:
@@ -33,6 +32,8 @@ class RotaryEncoder(AbstractSensor):
 
             self.val_old_clk_pin = self.clk_pin.value
             self.val_old_dt_pin = self.dt_pin.value
+
+        super().__init__()
 
     """
     updates the readout value according to scale. Cuts value to integer, because we want to output whole ticks.
