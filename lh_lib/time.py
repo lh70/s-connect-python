@@ -33,3 +33,11 @@ def ticks_us_diff_to_current(old_ticks):
     # on CPython we cannot use ticks, but it is assumed fast enough to use time_ns()
     # time_ns() is converted to microseconds with rounding using only integer arithmetic
     return (time.perf_counter_ns() + 500) // 1000 - old_ticks
+
+
+def sleep_us(us):
+    if RUNNING_MICROPYTHON:
+        time.sleep_us(us)
+    else:
+        # CPython has no dedicated microseconds sleep method
+        time.sleep(us/1000000.0)
