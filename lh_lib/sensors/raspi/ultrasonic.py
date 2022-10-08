@@ -12,7 +12,7 @@ class Ultrasonic(AbstractSensor):
     trigger_pin:integer, echo_pin:integer should be one of: (GPIO) 5, 6, 16, 17, 22, 23, 24, 25, 26, 27
         further information about the GPIO: https://pinout.xyz
     """
-    def __init__(self, trigger_pin=25, echo_pin=33):
+    def __init__(self, trigger_pin=17, echo_pin=27):
         super().__init__()
         self.trigger_pin = OutputDevice(pin=trigger_pin, initial_value=False)
         self.echo_pin = InputDevice(pin=echo_pin)
