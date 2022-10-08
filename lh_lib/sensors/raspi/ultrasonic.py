@@ -24,12 +24,12 @@ class Ultrasonic(AbstractSensor):
         # repeated function local access is faster than object reference
         tp = self.trigger_pin
         # ensure pin is initially low
-        tp.value(0)
+        tp.off()
         sleep_us(2)
         # trigger pulse
-        tp.value(1)
+        tp.on()
         sleep_us(10)
-        tp.value(0)
+        tp.off()
         # wait for echo == 0 -> 1
         pulse_duration = self._time_pulse_us(self.echo_pin, 1, 20000)
 
