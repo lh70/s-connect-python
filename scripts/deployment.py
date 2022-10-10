@@ -18,24 +18,24 @@ esptool.py --chip esp32 --port COM3 erase_flash
 esptool.py --chip esp32 --port COM3 --baud 460800 write_flash -z 0x1000 esp32-20210618-v1.16.bin
 
 """
-import json
-import pathlib
 import os
-import sys
+import pathlib
 import shutil
 import subprocess
+import sys
+import json
 
-RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
-PRE_COMPILE = True
+PRE_COMPILE = True  # Pre-compiles files to .mpy format
 NATIVE_CODE = False  # True currently not usable. Uses to much RAM on device. Alternative: use the @micropython.native function decorator
-MPY_MARCH = 'xtensawin'
+MPY_MARCH = 'xtensawin'  # ESP32
+
+if sys.implementation.name == 'micropython':
+    raise Exception("Call this script on a host platform with your microcontroller connected! (python deployment.py)")
 
 
-# mpremote only works with unix like forward slashes, so lets enforce these
-def os_path_join(*parts):
-    def convert(path):
-        return path.replace('\\', '/').replace('//', '/')
-    return '/'.join(map(convert, parts))
+"""
+Utility Classes
+"""
 
 
 class Flags:
@@ -66,11 +66,8 @@ class Flags:
 
 class MTimes:
 
-    def __init__(self, init_struct=None):
-        self.struct = init_struct or {}
-
-    def contains(self, fp_parts):
-        return self.get_m_time(fp_parts) != 0
+    def __init__(self):
+        self.struct = {}
 
     def get_m_time(self, fp_parts):
         try:
@@ -89,6 +86,9 @@ class MTimes:
                 sec[part] = {}
             sec = sec[part]
         sec[parts[-1]] = m_time
+
+    def serialize(self):
+        return json.dumps(self.struct)
 
     def as_list(self):
         return self._as_list(self.struct)
@@ -119,10 +119,101 @@ class MTimes:
         subprocess.run(['mpremote', 'fs', 'cp', f'build/m_times.json', f':m_times.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
 
 
-def run():
-    if RUNNING_MICROPYTHON:
-        raise Exception("Call this script on the host platform with your microcontroller connected! (python deployment.py)")
+"""
+Device Code
+  
+  removes ghost files/directories and creates new directories directly on the device
+  
+"""
+DEVICE_CODE = """
 
+import json
+import os
+
+class MTimes:
+
+    def __init__(self, serialized_mtimes=None):
+        self.struct = {} if serialized_mtimes is None else json.loads(serialized_mtimes)
+
+    def contains(self, fp_parts):
+        return self.get_m_time(fp_parts) != 0
+
+    def get_m_time(self, fp_parts):
+        try:
+            sec = self.struct
+            for part in fp_parts:
+                sec = sec[part]
+        except KeyError:
+            return 0
+        return sec
+
+    def as_list(self):
+        return self._as_list(self.struct)
+
+    def _as_list(self, root):
+        if not isinstance(root, dict):
+            return [[]]
+
+        result = []
+        for k in root:
+            for fp_list in self._as_list(root[k]):
+                result.append([k] + fp_list)
+        return result
+        
+
+# loading mtimes
+try:
+    with open('m_times.json') as f:
+        device_mtimes = MTimes(f.read())
+except OSError:
+    device_mtimes = MTimes()
+
+build_mtimes = MTimes(SERIALIZED_BUILD_MTIMES)
+
+# removing old files
+for parts in device_mtimes.as_list():
+    if not build_mtimes.contains(['build'] + parts):
+        fp = '/'.join(parts)
+        print(f'removing ghost file {fp}')
+        os.remove(fp)
+
+        dir_parts = parts[:-1]
+        while len(dir_parts) > 0:
+            directory = '/'.join(dir_parts)
+            try:
+                if os.listdir(directory):
+                    # non empty directory
+                    break
+                else:
+                    # empty directory
+                    print(f'removing ghost directory {directory}')
+                    os.rmdir(directory)
+            except OSError:
+                # non existent directory
+                break
+            dir_parts = parts[:-1]
+
+# create directories if they do not exist
+try:
+    os.stat('lh_lib')
+except OSError:
+    print(f'creating non existent directory lh_lib on device')
+    os.mkdir('lh_lib')
+
+unique_directories = set()
+for parts in build_mtimes.as_list():
+    unique_directories.add('/'.join(parts[1:-1]))  # first part is 'build' and last part is "filename"
+
+for directory in unique_directories:
+    try:
+        os.stat(directory)
+    except OSError:
+        print(f'creating non existent directory {directory} on device')
+        os.mkdir(directory)
+"""
+
+
+if __name__ == '__main__':
     # set working directory to repository root for the case that the script is not called in its directory
     os.chdir(os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
     print(f'changed working directory to: {os.getcwd()}')
@@ -137,7 +228,7 @@ def run():
     shutil.rmtree('build')
 
     # create new build_m_times
-    build_m_times = MTimes()
+    build_mtimes = MTimes()
 
     # build files
     if not os.path.isdir('build'):
@@ -162,58 +253,26 @@ def run():
                     print(f'copying file {lib_fp} to {out_fp}')
                     shutil.copy2(lib_fp, out_fp)
 
-                build_m_times.add(out_fp, os.stat(lib_fp).st_mtime)
+                build_mtimes.add(out_fp, os.stat(lib_fp).st_mtime)
 
     # get device_m_times
-    device_m_times = MTimes()
-    device_m_times.load_from_device()
+    device_mtimes = MTimes()
+    device_mtimes.load_from_device()
 
     # get device flags
     device_flags = Flags()
 
-    # delete old files
-    for parts in device_m_times.as_list():
-        if not build_m_times.contains(['build'] + parts):
-            fp = '/'.join(parts)
-            print(f'removing ghost file {fp}')
-            subprocess.run(['mpremote', 'fs', 'rm', fp], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
-
-            dir_parts = parts[:-1]
-            while len(dir_parts) > 0:
-                dp = '/'.join(parts)
-                p = subprocess.run(['mpremote', 'fs', 'rmdir', dp], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-                if p.returncode == 0:
-                    print(f'removing ghost directory {dp}')
-                else:
-                    break
-
-    # make directories on device if they do not exist
-    process = subprocess.run(['mpremote', 'fs', 'ls', 'lh_lib'], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-    if process.returncode != 0:
-        print(f'creating non existent directory lh_lib on device')
-        subprocess.run(['mpremote', 'fs', 'mkdir', 'lh_lib'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
-
-    for path, directories, _ in os.walk('build/lh_lib'):
-        path = '/'.join(pathlib.Path(path).parts[1:])  # remove build from path
-        for directory in directories:
-            p = os_path_join(path, directory)
-
-            process = subprocess.run(['mpremote', 'fs', 'ls', p], stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            if process.returncode != 0:
-                print(f'creating non existent directory {p} on device')
-                subprocess.run(['mpremote', 'fs', 'mkdir', p], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
+    # run device code to remove ghost files/directories and create new directories
+    code_to_execute = f"SERIALIZED_BUILD_MTIMES='{build_mtimes.serialize()}'\n{DEVICE_CODE}"
+    subprocess.run(['mpremote', 'exec', code_to_execute], check=True)
 
     # deploy modified and new files
-    for parts in build_m_times.as_list():
+    for parts in build_mtimes.as_list():
         src_fp = '/'.join(parts)
         dst_fp = '/'.join(parts[1:])
-        if not device_flags.flags_match() or build_m_times.get_m_time(parts) > device_m_times.get_m_time(parts[1:]):
+        if not device_flags.flags_match() or build_mtimes.get_m_time(parts) > device_mtimes.get_m_time(parts[1:]):
             print(f'copying host file {src_fp} to device :{dst_fp}')
             subprocess.run(['mpremote', 'fs', 'cp', src_fp, f':{dst_fp}'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
 
     device_flags.save_to_device()
-    build_m_times.save_to_device()
-
-
-if __name__ == '__main__':
-    run()
+    build_mtimes.save_to_device()
