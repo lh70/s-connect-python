@@ -16,8 +16,9 @@ class RotaryEncoder(AbstractSensor):
                 Default is 0.5 -> 2 steps per resting state -> states between resting states are also valid states
                 0.25 would also be reasonable -> 1 step per resting state
     """
-
     def __init__(self, clk_pin=17, dt_pin=27, scale=0.5, use_gpio_implementation=False):
+        super().__init__()
+
         self.use_gpio_implementation = use_gpio_implementation
 
         if self.use_gpio_implementation:
@@ -31,36 +32,23 @@ class RotaryEncoder(AbstractSensor):
             self.val_old_clk_pin = self.clk_pin.value
             self.val_old_dt_pin = self.dt_pin.value
 
-        super().__init__()
+            # default is to listen for both edge kinds
+            self.clk_pin.pin.when_changed = self.clk_callback
+            self.dt_pin.pin.when_changed = self.dt_callback
+
+    def __del__(self):
+        if not self.use_gpio_implementation:
+            self.clk_pin.pin.when_changed = None
+            self.dt_pin.pin.when_changed = None
 
     """
     updates the readout value according to scale. Cuts value to integer, because we want to output whole ticks.
     """
-
     def update(self):
         if self.use_gpio_implementation:
             self.value = self.sensor.steps
         else:
             self.value = int(self._pos * self.scale)
-
-    """
-    registers the interrupt handler used to calculate the co2 concentration
-    """
-
-    def start_irq(self):
-        if not self.use_gpio_implementation:
-            # default is to listen for both edge kinds
-            self.clk_pin.pin.when_changed = self.clk_callback
-            self.dt_pin.pin.when_changed = self.dt_callback
-
-    """
-    removes the interrupt handler
-    """
-
-    def stop_irq(self):
-        if not self.use_gpio_implementation:
-            self.clk_pin.pin.when_changed = None
-            self.dt_pin.pin.when_changed = None
 
     """
     callback for clk pin, which only updates valid steps for the clk pin.
@@ -72,7 +60,6 @@ class RotaryEncoder(AbstractSensor):
 
     this removes nearly all jitter.
     """
-
     def clk_callback(self, ticks, state):
         clk_val = state
         dt_val = self.dt_pin.value

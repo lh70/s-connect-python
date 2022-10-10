@@ -25,6 +25,11 @@ class CO2(AbstractSensor):
 
         self.last_interrupt_time = ticks_us()
 
+        self.pin.irq(handler=self._interrupt, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING)
+
+    def __del__(self):
+        self.pin.irq(handler=None, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING)
+
     """
     if new pulse values available sets the sensors value to the set(high_pulse, low_pulse, computed_concentration)
     else sets value to None, which represents an invalid sensor value that will be ignored.
@@ -36,19 +41,6 @@ class CO2(AbstractSensor):
             self.pulses_changed = False
         else:
             self.value = None
-
-    """
-    registers the interrupt handler used to calculate the co2 concentration
-    """
-    def start_irq(self):
-        self.irq_fresh_start = True
-        self.pin.irq(handler=self._interrupt, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING)
-
-    """
-    removes the interrupt handler
-    """
-    def stop_irq(self):
-        self.pin.irq(handler=None, trigger=Pin.IRQ_FALLING | Pin.IRQ_RISING)
 
     """
     interrupt handler which sets the pulse durations

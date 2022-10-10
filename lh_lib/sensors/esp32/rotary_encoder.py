@@ -26,8 +26,6 @@ class RotaryEncoder(AbstractSensor):
         self.val_old_clk_pin = self.clk_pin.value()
         self.val_old_dt_pin = self.dt_pin.value()
 
-        # start_irq and stop_irq not used here, as this messes with state,
-        # where changes in rotation are only measured if sensor is gets watched
         self.clk_pin.irq(handler=self.clk_callback, trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING)
         self.dt_pin.irq(handler=self.dt_callback, trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING)
 
