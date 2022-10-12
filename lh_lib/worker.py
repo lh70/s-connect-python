@@ -1,7 +1,10 @@
 from lh_lib.logging import log
 from lh_lib.assignment import Assignment
-from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, AssignmentException, ExpectedException, print_traceback
+from lh_lib.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, \
+    AssignmentException, ExpectedException, print_traceback, CommunicationException
 from lh_lib.network_stack.server import Server
+from lh_lib.remote_filesystem import RemoteFilesystemHandler
+from lh_lib.constants import RUNNING_MICROPYTHON
 
 
 class Worker:
@@ -14,6 +17,8 @@ class Worker:
         self.pipe_connections = {}
 
         self.assignments = {}
+
+        self.remote_filesystem_handler = RemoteFilesystemHandler()
 
     def remove_general_connection(self, conn, reason):
         conn.close()
@@ -62,6 +67,8 @@ class Worker:
                     self.remove_general_connection(conn, 'error: received data message on general connection')
 
     def handle_control_message(self, d, conn):
+        result = None
+
         try:
             message_type = d['type']
             message_content = d['content']
@@ -95,6 +102,16 @@ class Worker:
                     log('promoting general connection {} to output pipeline connection on assignment {} with pipe-id {} | num general connections: {}', conn.address, assignment_id, pipe_id, len(self.general_connections))
                 else:
                     raise AssignmentException(f'assignment-id {assignment_id} used for pipeline-id {pipe_id} does not exist')
+            elif message_type == 'remote_filesystem':
+                result = self.remote_filesystem_handler.handle_control_message(message_content)
+            elif message_type == 'reboot':
+                if RUNNING_MICROPYTHON:
+                    conn.send_acknowledgement()
+                    log('reboot requested. rebooting...')
+                    import machine
+                    machine.reset()
+                else:
+                    raise CommunicationException('reboot is only allowed on micropython')
             else:
                 raise Exception('invalid control message kind')
         except ExpectedException as e:
@@ -104,6 +121,11 @@ class Worker:
             print_traceback(e)
         else:
             try:
-                conn.send_acknowledgement()
+                if result is None:
+                    conn.send_acknowledgement()
+                else:
+                    conn.send(result.serializable())
             except ConnectionClosedDownException as e:
                 self.remove_general_connection(conn, f'remote unexpectedly closed down connection during sending acknowledgement: {type(e)} {e}')
+            except Exception as e:
+                self.remove_general_connection(conn, f'internal error on sending response: {type(e)} {e}')

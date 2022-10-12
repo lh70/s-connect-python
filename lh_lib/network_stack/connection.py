@@ -96,5 +96,15 @@ class Connection:
 
         raise AcknowledgementException("timeout on receiving acknowledgement")
 
+    def recv_wait(self):
+        timestamp = ticks_ms()
+        while ticks_ms_diff_to_current(timestamp) < ACKNOWLEDGEMENT_TIMEOUT_MS:
+            try:
+                return self.recv()
+            except NoReadableDataException:
+                pass
+
+        raise AcknowledgementException("timeout on receiving acknowledgement")
+
     def close(self):
         self._buffered_socket.close()

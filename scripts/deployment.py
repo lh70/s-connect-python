@@ -175,7 +175,10 @@ for parts in device_mtimes.as_list():
     if not build_mtimes.contains(['build'] + parts):
         fp = '/'.join(parts)
         print(f'removing ghost file {fp}')
-        os.remove(fp)
+        try:
+            os.remove(fp)
+        except OSError:
+            print(f'ghost file {fp} does not exist on filesystem. ignoring.')
 
         dir_parts = parts[:-1]
         while len(dir_parts) > 0:
@@ -253,7 +256,7 @@ if __name__ == '__main__':
                     print(f'copying file {lib_fp} to {out_fp}')
                     shutil.copy2(lib_fp, out_fp)
 
-                build_mtimes.add(out_fp, os.stat(lib_fp).st_mtime)
+                build_mtimes.add(out_fp, int(os.stat(lib_fp).st_mtime))  # using int cast, because esp32 float precision cannot handle this long float
 
     # get device_m_times
     device_mtimes = MTimes()
