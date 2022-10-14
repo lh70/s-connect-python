@@ -8,13 +8,15 @@ mpremote (installable with: pip install mpremote)
 
 
 To deploy the firmware (micropython) itself on the esp32 controller there are some steps to do beforehand:
+* make sure you have a recent python 3 installation (preferably with scripts added to path)
 * install the esptool with pip:
 pip install esptool
 * download the latest GENERIC stable build from here: https://micropython.org/download/esp32/
-* hold the boot button while esptool is connecting on the following commands
-* if the esp32 is new with no prior micropython on it erase the flash with this command:
++ find out on which
+* on executing the following commands with esptool: hold the boot button while esptool is connecting
+* if the esp32 is new with no prior micropython on it erase the flash with this command (replace COM3 with your usb port):
 esptool.py --chip esp32 --port COM3 erase_flash
-* deploy the the micropython with this command: (replace port and .bin with your information)
+* deploy the the micropython with this command: (replace COM3 and .bin with your information)
 esptool.py --chip esp32 --port COM3 --baud 460800 write_flash -z 0x1000 esp32-20210618-v1.16.bin
 
 """
