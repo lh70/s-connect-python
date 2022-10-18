@@ -27,6 +27,9 @@ import subprocess
 import sys
 import json
 
+FIRST_DEPLOYMENT = True  # if set, copies boot.py, main.py and wlan.json onto the device (!!! make sure there is a hostname set in wlan.json and that there is at least one pair of valid credentials set (ssid -> pw) !!!)
+DEPLOY_BASE_ONLY = False  # if set, deploys only the base module with the base_worker
+
 PRE_COMPILE = True  # Pre-compiles files to .mpy format
 NATIVE_CODE = False  # True currently not usable. Uses to much RAM on device. Alternative: use the @micropython.native function decorator
 MPY_MARCH = 'xtensawin'  # ESP32
@@ -212,11 +215,17 @@ for parts in build_mtimes.as_list():
         unique_directories.append(directory)
 
 for directory in unique_directories:
-    try:
-        os.stat(directory)
-    except OSError:
-        print(f'creating non existent directory {directory} on device')
-        os.mkdir(directory)
+    parts = directory.split('/')
+    partial_directory = ''
+    
+    while len(parts)>0:
+        partial_directory += '/' + parts.pop(0)
+
+        try:
+            os.stat(partial_directory)
+        except OSError:
+            print(f'creating non existent directory {partial_directory} on device')
+            os.mkdir(partial_directory)
 """
 
 
@@ -241,7 +250,9 @@ if __name__ == '__main__':
     if not os.path.isdir('build'):
         os.mkdir('build')
 
-    for path, _, files in os.walk('lh_lib'):
+    directory_to_deploy = 'lh_lib/base' if DEPLOY_BASE_ONLY else 'lh_lib'
+
+    for path, _, files in os.walk(directory_to_deploy):
         for file in files:
             if file.endswith('.py'):
                 lib_fp = os.path.join(path, file)
@@ -283,3 +294,12 @@ if __name__ == '__main__':
 
     device_flags.save_to_device()
     build_mtimes.save_to_device()
+
+    if FIRST_DEPLOYMENT:
+        print('copying additional files of first deployment:')
+        print('copying host file wlan.json to device :wlan.json')
+        subprocess.run(['mpremote', 'fs', 'cp', 'wlan.json', ':wlan.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
+        print('copying host file boot.py to device :boot.py')
+        subprocess.run(['mpremote', 'fs', 'cp', 'boot.py', ':boot.py'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
+        print('copying host file main.py to device :main.py')
+        subprocess.run(['mpremote', 'fs', 'cp', 'main.py', ':main.py'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
