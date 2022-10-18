@@ -1,4 +1,4 @@
-from lh_lib.exceptions import CommunicationException
+from lh_lib.base.exceptions import CommunicationException
 
 
 class SensorManager:

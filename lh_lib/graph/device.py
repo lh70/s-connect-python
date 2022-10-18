@@ -1,6 +1,6 @@
 import json
 
-from lh_lib.network_stack.client import Client
+from lh_lib.base.network_stack.client import Client
 
 
 class Device:

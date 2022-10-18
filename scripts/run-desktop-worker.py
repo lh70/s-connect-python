@@ -6,16 +6,16 @@ import os
 import sys
 
 try:
-    from lh_lib.logging import log
+    from lh_lib.base.logging import log
 except ImportError:
     sys.path.insert(1, os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
-    from lh_lib.logging import log
+    from lh_lib.base.logging import log
 
-from lh_lib.network_stack.server import DEFAULT_PORT
+from lh_lib.base.network_stack.server import DEFAULT_PORT
 from lh_lib.worker import Worker
 from lh_lib.sensors.manage import SensorManager
 from lh_lib.sensors.esp32.dummy import Dummy
-from lh_lib.constants import RUNNING_MICROPYTHON
+from lh_lib.base.constants import RUNNING_MICROPYTHON
 
 
 if RUNNING_MICROPYTHON:

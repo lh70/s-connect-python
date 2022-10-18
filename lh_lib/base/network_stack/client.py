@@ -1,6 +1,6 @@
 import socket
 
-from lh_lib.network_stack.connection import Connection
+from lh_lib.base.network_stack.connection import Connection
 
 
 # creates a client socket with this projects own transport-protocol wrapped socket

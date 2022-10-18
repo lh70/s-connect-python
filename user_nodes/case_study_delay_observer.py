@@ -1,8 +1,8 @@
 import os
 
 from lh_lib.user_node_types import DualInputNoOutputUserNode
-from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
-from lh_lib.logging import DataLogger
+from lh_lib.base.time import ticks_ms, ticks_ms_diff_to_current
+from lh_lib.base.logging import DataLogger
 
 
 class CaseStudyDelayObserver(DualInputNoOutputUserNode):

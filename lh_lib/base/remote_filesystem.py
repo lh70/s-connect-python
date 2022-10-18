@@ -6,15 +6,18 @@ exposes a minimal file manipulating API
 import os
 import json
 
-from lh_lib.serializable_data_types import ControlMessageResponseResult, ControlMessageResponseError
+from lh_lib.base.serializable_data_types import ControlMessageResponseResult, ControlMessageResponseError
+from lh_lib.base.constants import RUNNING_MICROPYTHON
 
 
 class RemoteFilesystemHandler:
 
     def __init__(self):
-        # must be available through the first direct deployment via usb
-        with open('/m_times.json', 'rt') as f:
-            self.mtimes = json.load(f)
+        if RUNNING_MICROPYTHON:
+            # must be available through the first direct deployment via usb
+            # mtimes are only specially tracked on esp32, because it does not (yet) has access to an accurate time, therefore mtimes is not set on files automatically
+            with open('/m_times.json', 'rt') as f:
+                self.mtimes = json.load(f)
 
     def handle_control_message(self, message_content):
         filesystem_command = message_content['command']
@@ -29,9 +32,10 @@ class RemoteFilesystemHandler:
                 file_new_mtime = message_content['mtime']
                 with open(filesystem_path, 'wt') as f:
                     f.write(file_content)
-                self.add_mtime(filesystem_path, file_new_mtime)
-                with open('/m_times.json', 'wt') as f:
-                    json.dump(self.mtimes, f)
+                if RUNNING_MICROPYTHON:
+                    self.add_mtime(filesystem_path, file_new_mtime)
+                    with open('/m_times.json', 'wt') as f:
+                        json.dump(self.mtimes, f)
                 return ControlMessageResponseResult(True)
             elif filesystem_command == 'read_file':
                 with open(filesystem_path, 'rt') as f:
@@ -39,14 +43,15 @@ class RemoteFilesystemHandler:
                 return ControlMessageResponseResult(content)
             elif filesystem_command == 'remove_file':
                 os.remove(filesystem_path)
-                self.remove_mtime(filesystem_path)
-                with open('/m_times.json', 'wt') as f:
-                    json.dump(self.mtimes, f)
+                if RUNNING_MICROPYTHON:
+                    self.remove_mtime(filesystem_path)
+                    with open('/m_times.json', 'wt') as f:
+                        json.dump(self.mtimes, f)
                 return ControlMessageResponseResult(True)
             elif filesystem_command == 'path_stat':
                 return ControlMessageResponseResult({
                     'stat': os.stat(filesystem_path),
-                    'mtime': self.get_mtime(filesystem_path)
+                    'mtime': self.get_mtime(filesystem_path) if RUNNING_MICROPYTHON else None
                 })
             elif filesystem_command == 'list_directory':
                 return ControlMessageResponseResult(os.listdir(filesystem_path))

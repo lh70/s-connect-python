@@ -205,9 +205,11 @@ except OSError:
     print(f'creating non existent directory lh_lib on device')
     os.mkdir('lh_lib')
 
-unique_directories = set()
+unique_directories = []
 for parts in build_mtimes.as_list():
-    unique_directories.add('/'.join(parts[1:-1]))  # first part is 'build' and last part is "filename"
+    directory = '/'.join(parts[1:-1])  # first part is 'build' and last part is "filename"
+    if directory not in unique_directories:
+        unique_directories.append(directory)
 
 for directory in unique_directories:
     try:

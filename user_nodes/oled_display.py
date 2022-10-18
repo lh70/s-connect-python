@@ -1,5 +1,5 @@
 from lh_lib.user_node_types import SingleInputNoOutputUserNode
-from lh_lib.constants import RUNNING_MICROPYTHON
+from lh_lib.base.constants import RUNNING_MICROPYTHON
 
 if RUNNING_MICROPYTHON:
     from lh_lib.peripherals.esp32.displays import SSD1306

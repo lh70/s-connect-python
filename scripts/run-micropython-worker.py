@@ -4,7 +4,7 @@ to be run on an esp32 with mpremote run ... . Starts the framework on micropytho
 import sys
 
 from lh_lib.worker import Worker
-from lh_lib.logging import log
+from lh_lib.base.logging import log
 from lh_lib.sensors.manage import SensorManager
 from lh_lib.sensors.esp32.dummy import Dummy
 from lh_lib.sensors.esp32.poti import Poti, ATT3_6V
@@ -17,9 +17,9 @@ from lh_lib.sensors.esp32.ultrasonic import Ultrasonic
 from lh_lib.sensors.esp32.rotary_encoder import RotaryEncoder
 from lh_lib.sensors.esp32.co2 import CO2
 from lh_lib.sensors.esp32.button import Button
-from lh_lib.network_stack.server import DEFAULT_PORT
-from lh_lib.network_stack.wlan import isconnected, reconnect
-from lh_lib.constants import RUNNING_MICROPYTHON
+from lh_lib.base.network_stack.server import DEFAULT_PORT
+from lh_lib.base.network_stack.wlan import isconnected, reconnect
+from lh_lib.base.constants import RUNNING_MICROPYTHON
 
 
 if not RUNNING_MICROPYTHON:

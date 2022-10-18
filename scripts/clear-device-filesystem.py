@@ -21,24 +21,21 @@ def gather_files_and_directories(root=''):
         name = node[0]
         node_type = node[1]
 
-        fp = '{}/{}'.format(root, name)
-
-        # boot script is not removed
-        # would have no consequences, but our wifi config is gone with a bare boot.py on next reboot
-        if fp == '/boot.py':
-            continue
+        path = '{}/{}'.format(root, name)
 
         if node_type == 0x4000:
             # recursively gather files from directories
-            print('found directory: {}'.format(fp))
-            directories.append(fp)
-            files += gather_files_and_directories(fp)
+            print('found directory: {}'.format(path))
+            directories.append(path)
+            sub_files, sub_directories = gather_files_and_directories(path)
+            files += sub_files
+            directories += sub_directories
         elif node_type == 0x8000:
             # add files
-            print('found file: {}'.format(fp))
-            files.append(fp)
+            print('found file: {}'.format(path))
+            files.append(path)
         else:
-            raise Exception('{} has unknown filesystem type {}'.format(fp, node_type))
+            raise Exception('{} has unknown filesystem type {}'.format(path, node_type))
 
     return files, directories
 
@@ -49,6 +46,6 @@ for p in file_paths:
     print('removing file: {}'.format(p))
     os.remove(p)
 
-for p in dir_paths:
+for p in dir_paths[::-1]:
     print('removing directory: {}'.format(p))
     os.remove(p)

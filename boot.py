@@ -10,7 +10,7 @@ import machine
 
 
 try:
-    from lh_lib.network_stack.wlan import connect, ifconfig
+    from lh_lib.base.network_stack.wlan import connect, ifconfig
     connect()
     print(f'network config: {ifconfig()}\n')
 except KeyboardInterrupt:

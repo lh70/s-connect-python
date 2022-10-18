@@ -2,7 +2,7 @@ import json
 import time
 import network
 
-from lh_lib.logging import log
+from lh_lib.base.logging import log
 
 
 try:

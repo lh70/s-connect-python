@@ -1,5 +1,5 @@
 from lh_lib.user_node_types import NoInputSingleOutputUserNode
-from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
+from lh_lib.base.time import ticks_ms, ticks_ms_diff_to_current
 
 
 class SensorRead(NoInputSingleOutputUserNode):

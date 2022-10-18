@@ -1,4 +1,4 @@
-from lh_lib.exceptions import ConnectionClosedDownException
+from lh_lib.base.exceptions import ConnectionClosedDownException
 
 # maximum receive network buffer
 MAX_RECEIVE_BYTES = 4096

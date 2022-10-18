@@ -1,6 +1,6 @@
 import time
 
-from lh_lib.constants import RUNNING_MICROPYTHON
+from lh_lib.base.constants import RUNNING_MICROPYTHON
 
 
 def ticks_ms():

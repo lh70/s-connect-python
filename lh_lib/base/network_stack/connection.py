@@ -1,9 +1,9 @@
 import json
 import struct
 
-from lh_lib.time import ticks_ms, ticks_ms_diff_to_current
-from lh_lib.exceptions import NoReadableDataException, InvalidDataException, AcknowledgementException, ConnectionClosedDownException
-from lh_lib.network_stack.buffered_socket import BufferedSocket
+from lh_lib.base.time import ticks_ms, ticks_ms_diff_to_current
+from lh_lib.base.exceptions import NoReadableDataException, InvalidDataException, AcknowledgementException, ConnectionClosedDownException
+from lh_lib.base.network_stack.buffered_socket import BufferedSocket
 
 # general maximum for an 32bit unsigned integer value
 MAX_UNSIGNED_INT = 4294967295

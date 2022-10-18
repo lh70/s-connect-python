@@ -1,10 +1,10 @@
 import socket
 
-from lh_lib.network_stack.connection import Connection
-from lh_lib.constants import RUNNING_MICROPYTHON
+from lh_lib.base.network_stack.connection import Connection
+from lh_lib.base.constants import RUNNING_MICROPYTHON
 
 if RUNNING_MICROPYTHON:
-    from lh_lib.network_stack.wlan import isconnected, reconnect
+    from lh_lib.base.network_stack.wlan import isconnected, reconnect
 
 
 DEFAULT_PORT = 8090

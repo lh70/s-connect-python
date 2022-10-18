@@ -1,4 +1,4 @@
-from lh_lib.time import ticks_ms
+from lh_lib.base.time import ticks_ms
 
 ACTIVE = True
 

@@ -2,7 +2,7 @@ from machine import Pin, SoftI2C
 from micropython import const
 
 from lh_lib.sensors.sensor import AbstractSensor
-from lh_lib.logging import log
+from lh_lib.base.logging import log
 
 MPU6050_ADDRESS = const(0x68)
 

@@ -1,4 +1,4 @@
-from lh_lib.time import sleep_us, ticks_us, ticks_us_diff_to_current
+from lh_lib.base.time import sleep_us, ticks_us, ticks_us_diff_to_current
 from gpiozero import InputDevice, OutputDevice
 
 from lh_lib.sensors.sensor import AbstractSensor

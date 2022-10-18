@@ -1,7 +1,7 @@
 from smbus import SMBus
 
 from lh_lib.sensors.sensor import AbstractSensor
-from lh_lib.logging import log
+from lh_lib.base.logging import log
 
 MPU6050_ADDRESS = 0x68
 

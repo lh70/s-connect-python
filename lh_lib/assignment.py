@@ -1,5 +1,5 @@
-from lh_lib.network_stack.client import Client
-from lh_lib.exceptions import AssignmentException
+from lh_lib.base.network_stack.client import Client
+from lh_lib.base.exceptions import AssignmentException
 from lh_lib.pipeline import InputPipeline, OutputPipeline, LocalPipeline
 
 
