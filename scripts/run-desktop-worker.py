@@ -1,5 +1,5 @@
 """
-to be run on a console. starts the framework on a computer
+to be run on a console. starts the framework on a computer with a cpython environment
 """
 
 import os
@@ -15,10 +15,9 @@ from lh_lib.base.network_stack.server import DEFAULT_PORT
 from lh_lib.worker import Worker
 from lh_lib.sensors.manage import SensorManager
 from lh_lib.sensors.esp32.dummy import Dummy
-from lh_lib.base.constants import RUNNING_MICROPYTHON
 
 
-if RUNNING_MICROPYTHON:
+if sys.implementation.name == 'micropython':
     raise Exception("Run this script in a CPython environment, not micropython! (python scripts/run-desktop-worker.py)")
 
 

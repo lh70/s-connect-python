@@ -35,7 +35,7 @@ NATIVE_CODE = False  # True currently not usable. Uses to much RAM on device. Al
 MPY_MARCH = 'xtensawin'  # ESP32
 
 if sys.implementation.name == 'micropython':
-    raise Exception("Call this script on a host platform with your microcontroller connected! (python deployment.py)")
+    raise Exception("Call this script on a host platform with your microcontroller connected! (python local-deployment.py)")
 
 
 """

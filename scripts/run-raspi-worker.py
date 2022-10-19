@@ -23,7 +23,6 @@ from lh_lib.sensors.raspi.touch import Touch
 from lh_lib.sensors.raspi.ultrasonic import Ultrasonic
 from lh_lib.base.constants import PLATFORMS, PLATFORM
 
-
 if PLATFORM != PLATFORMS.RASPBERRYPI:
     raise Exception("Please run this script on a Raspberry Pi!")
 

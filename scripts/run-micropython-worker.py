@@ -3,6 +3,9 @@ to be run on an esp32 with mpremote run ... . Starts the framework on micropytho
 """
 import sys
 
+if not sys.implementation.name == 'micropython':
+    raise Exception("Call this script on the microcontroller directly! (mpremote run scripts/run-micropython-worker.py)")
+
 from lh_lib.worker import Worker
 from lh_lib.base.logging import log
 from lh_lib.sensors.manage import SensorManager
@@ -19,11 +22,6 @@ from lh_lib.sensors.esp32.co2 import CO2
 from lh_lib.sensors.esp32.button import Button
 from lh_lib.base.network_stack.server import DEFAULT_PORT
 from lh_lib.base.network_stack.wlan import isconnected, reconnect
-from lh_lib.base.constants import RUNNING_MICROPYTHON
-
-
-if not RUNNING_MICROPYTHON:
-    raise Exception("Call this script on the microcontroller directly! (mpremote run scripts/run-micropython-worker.py)")
 
 
 def run():

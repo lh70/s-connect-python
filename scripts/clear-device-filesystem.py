@@ -7,9 +7,7 @@ This was used as I once corrupted one esp32s filesystem and could not get the fi
 import os
 import sys
 
-RUNNING_MICROPYTHON = sys.implementation.name == 'micropython'
-
-if not RUNNING_MICROPYTHON:
+if not sys.implementation.name == 'micropython':
     raise Exception("Call this script on the microcontroller directly! (mpremote run scripts/clear-device-filesystem.py)")
 
 
