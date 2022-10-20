@@ -27,7 +27,7 @@ import subprocess
 import sys
 import json
 
-FIRST_DEPLOYMENT = True  # if set, copies boot.py, main.py and wlan.json onto the device (!!! make sure there is a hostname set in wlan.json and that there is at least one pair of valid credentials set (ssid -> pw) !!!)
+DEPLOY_STARTUP_FILES = False  # if set, copies boot.py, main.py and wlan.json onto the device (!!! make sure there is a hostname set in wlan.json and that there is at least one pair of valid credentials set (ssid -> pw) !!!)
 DEPLOY_BASE_ONLY = False  # if set, deploys only the base module with the base_worker
 
 PRE_COMPILE = True  # Pre-compiles files to .mpy format
@@ -52,7 +52,7 @@ class Flags:
             self.old_flags = {}
         else:
             print("using existing flags.json for reference.")
-            with open('build/flags.json', 'r') as f:
+            with open('build/flags.json', 'r', encoding='utf8') as f:
                 self.old_flags = json.load(f)
 
     def flags_match(self):
@@ -64,7 +64,7 @@ class Flags:
     @classmethod
     def save_to_device(cls):
         print('saving new build/flags.json to device :flags.json')
-        with open('build/flags.json', 'w') as f:
+        with open('build/flags.json', 'w', encoding='utf8') as f:
             json.dump({'PRE_COMPILE': PRE_COMPILE, 'NATIVE_CODE': NATIVE_CODE, 'MPY_MARCH': MPY_MARCH}, f)
         subprocess.run(['mpremote', 'fs', 'cp', 'build/flags.json', ':flags.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
 
@@ -114,12 +114,12 @@ class MTimes:
             print("could not retrieve device m_times.json. creating new one.")
         else:
             print("using existing m_times.json for reference.")
-            with open('build/m_times.json', 'r') as f:
+            with open('build/m_times.json', 'r', encoding='utf8') as f:
                 self.struct = json.load(f)
 
     def save_to_device(self):
         print(f'saving new build/m_times.json to device :m_times.json')
-        with open('build/m_times.json', 'w') as f:
+        with open('build/m_times.json', 'w', encoding='utf8') as f:
             json.dump(self.struct['build'], f)  # we want struct relative to lh_lib
         subprocess.run(['mpremote', 'fs', 'cp', f'build/m_times.json', f':m_times.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
 
@@ -176,9 +176,16 @@ except OSError:
 build_mtimes = MTimes(SERIALIZED_BUILD_MTIMES)
 
 # removing old files
+RESERVED_FILES = ['m_times.json', 'flags.json', 'main.py', 'boot.py', 'wlan.json']
+RESERVED_FILES += ['/' + f for f in RESERVED_FILES[:]]
+
 for parts in device_mtimes.as_list():
     if not build_mtimes.contains(['build'] + parts):
         fp = '/'.join(parts)
+        
+        if fp in RESERVED_FILES:
+            continue  # these reserved files may not be deleted, even though they are not in lh_lib
+        
         print(f'removing ghost file {fp}')
         try:
             os.remove(fp)
@@ -230,7 +237,7 @@ for directory in unique_directories:
 
 
 if __name__ == '__main__':
-    # set working directory to repository root for the case that the script is not called in its directory
+    # set working directory to repository root for the case that the script is not called from project root
     os.chdir(os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
     print(f'changed working directory to: {os.getcwd()}')
 
@@ -295,7 +302,7 @@ if __name__ == '__main__':
     device_flags.save_to_device()
     build_mtimes.save_to_device()
 
-    if FIRST_DEPLOYMENT:
+    if DEPLOY_STARTUP_FILES:
         print('copying additional files of first deployment:')
         print('copying host file wlan.json to device :wlan.json')
         subprocess.run(['mpremote', 'fs', 'cp', 'wlan.json', ':wlan.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)

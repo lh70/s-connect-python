@@ -1,7 +1,8 @@
+import time
+
 from lh_lib.base.logging import log
 from lh_lib.assignment import Assignment
-from lh_lib.base.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, \
-    AssignmentException, ExpectedException, print_traceback, CommunicationException
+from lh_lib.base.exceptions import NoReadableDataException, ConnectionClosedDownException, InvalidDataException, AssignmentException, ExpectedException, print_traceback, CommunicationException
 from lh_lib.base.network_stack.server import Server
 from lh_lib.base.remote_filesystem import RemoteFilesystemHandler
 from lh_lib.base.constants import RUNNING_MICROPYTHON
@@ -108,6 +109,7 @@ class Worker:
                 if RUNNING_MICROPYTHON:
                     conn.send_acknowledgement()
                     log('reboot requested. rebooting...')
+                    time.sleep(1)
                     import machine
                     machine.reset()
                 else:

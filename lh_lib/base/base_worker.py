@@ -1,6 +1,8 @@
 """
 Minimal worker implementation. Needs only the base module. Allows remote filesystem manipulation.
 """
+import time
+
 from lh_lib.base.logging import log
 from lh_lib.base.network_stack.server import Server
 from lh_lib.base.remote_filesystem import RemoteFilesystemHandler
@@ -62,6 +64,7 @@ class Worker:
                 if RUNNING_MICROPYTHON:
                     conn.send_acknowledgement()
                     log('reboot requested. rebooting...')
+                    time.sleep(1)
                     import machine
                     machine.reset()
                 else:

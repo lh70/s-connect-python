@@ -5,6 +5,7 @@ exposes a minimal file manipulating API
 """
 import os
 import json
+import binascii
 
 from lh_lib.base.serializable_data_types import ControlMessageResponseResult, ControlMessageResponseError
 from lh_lib.base.constants import RUNNING_MICROPYTHON
@@ -28,24 +29,24 @@ class RemoteFilesystemHandler:
 
         try:
             if filesystem_command == 'write_file':
-                file_content = message_content['content']
+                file_content = binascii.a2b_base64(message_content['content'])
                 file_new_mtime = message_content['mtime']
-                with open(filesystem_path, 'wt') as f:
+                with open(filesystem_path, mode='wb') as f:
                     f.write(file_content)
                 if RUNNING_MICROPYTHON:
                     self.add_mtime(filesystem_path, file_new_mtime)
-                    with open('/m_times.json', 'wt') as f:
+                    with open('/m_times.json', mode='wt') as f:
                         json.dump(self.mtimes, f)
                 return ControlMessageResponseResult(True)
             elif filesystem_command == 'read_file':
-                with open(filesystem_path, 'rt') as f:
-                    content = f.read()
-                return ControlMessageResponseResult(content)
+                with open(filesystem_path, mode='rb') as f:
+                    escaped_content = binascii.b2a_base64(f.read()).decode('utf8')
+                return ControlMessageResponseResult(escaped_content)
             elif filesystem_command == 'remove_file':
                 os.remove(filesystem_path)
                 if RUNNING_MICROPYTHON:
                     self.remove_mtime(filesystem_path)
-                    with open('/m_times.json', 'wt') as f:
+                    with open('/m_times.json', mode='wt') as f:
                         json.dump(self.mtimes, f)
                 return ControlMessageResponseResult(True)
             elif filesystem_command == 'path_stat':
