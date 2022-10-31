@@ -58,9 +58,9 @@ class Worker:
             except NoReadableDataException:
                 pass
             except ConnectionClosedDownException as e:
-                self.remove_general_connection(conn, f'remote closed connection: {e}')
+                self.remove_general_connection(conn, 'remote closed connection: {}'.format(e))
             except InvalidDataException as e:
-                self.remove_general_connection(conn, f'received invalid data: {e}')
+                self.remove_general_connection(conn, 'received invalid data: {}'.format(e))
             else:
                 if isinstance(obj, dict):
                     self.handle_control_message(obj, conn)
@@ -78,7 +78,7 @@ class Worker:
                 assignment_id = message_content['id']
 
                 if assignment_id in self.assignments:
-                    raise AssignmentException(f'assignment-id {assignment_id} is already in use')
+                    raise AssignmentException('assignment-id {} is already in use'.format(assignment_id))
 
                 self.assignments[assignment_id] = Assignment(message_content, self.sensor_manager)
                 log('creating assignment {} | num assignments: {}', assignment_id, len(self.assignments))
@@ -102,7 +102,7 @@ class Worker:
                     self.general_connections.remove(conn)
                     log('promoting general connection {} to output pipeline connection on assignment {} with pipe-id {} | num general connections: {}', conn.address, assignment_id, pipe_id, len(self.general_connections))
                 else:
-                    raise AssignmentException(f'assignment-id {assignment_id} used for pipeline-id {pipe_id} does not exist')
+                    raise AssignmentException('assignment-id {} used for pipeline-id {} does not exist'.format(assignment_id, pipe_id))
             elif message_type == 'remote_filesystem':
                 result = self.remote_filesystem_handler.handle_control_message(message_content)
             elif message_type == 'reboot':
@@ -117,9 +117,9 @@ class Worker:
             else:
                 raise Exception('invalid control message kind')
         except ExpectedException as e:
-            self.remove_general_connection(conn, f'error during processing control-message: {type(e)} {e}')
+            self.remove_general_connection(conn, 'error during processing control-message: {} {}'.format(type(e), e))
         except Exception as e:
-            self.remove_general_connection(conn, f'unexpected error during processing control-message: {type(e)} {e}')
+            self.remove_general_connection(conn, 'unexpected error during processing control-message: {} {}'.format(type(e), e))
             print_traceback(e)
         else:
             try:
@@ -128,6 +128,6 @@ class Worker:
                 else:
                     conn.send(result.serializable())
             except ConnectionClosedDownException as e:
-                self.remove_general_connection(conn, f'remote unexpectedly closed down connection during sending acknowledgement: {type(e)} {e}')
+                self.remove_general_connection(conn, 'remote unexpectedly closed down connection during sending acknowledgement: {} {}'.format(type(e), e))
             except Exception as e:
-                self.remove_general_connection(conn, f'internal error on sending response: {type(e)} {e}')
+                self.remove_general_connection(conn, 'internal error on sending response: {} {}'.format(type(e), e))

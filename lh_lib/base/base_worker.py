@@ -42,9 +42,9 @@ class Worker:
             except NoReadableDataException:
                 pass
             except ConnectionClosedDownException as e:
-                self.remove_general_connection(conn, f'remote closed connection: {e}')
+                self.remove_general_connection(conn, 'remote closed connection: {}'.format(e))
             except InvalidDataException as e:
-                self.remove_general_connection(conn, f'received invalid data: {e}')
+                self.remove_general_connection(conn, 'received invalid data: {}'.format(e))
             else:
                 if isinstance(obj, dict):
                     self.handle_control_message(obj, conn)
@@ -72,9 +72,9 @@ class Worker:
             else:
                 raise Exception('invalid control message kind')
         except ExpectedException as e:
-            self.remove_general_connection(conn, f'error during processing control-message: {type(e)} {e}')
+            self.remove_general_connection(conn, 'error during processing control-message: {} {}'.format(type(e), e))
         except Exception as e:
-            self.remove_general_connection(conn, f'unexpected error during processing control-message: {type(e)} {e}')
+            self.remove_general_connection(conn, 'unexpected error during processing control-message: {} {}'.format(type(e), e))
             print_traceback(e)
         else:
             try:
@@ -83,6 +83,6 @@ class Worker:
                 else:
                     conn.send(result.serializable())
             except ConnectionClosedDownException as e:
-                self.remove_general_connection(conn, f'remote unexpectedly closed down connection during sending acknowledgement: {type(e)} {e}')
+                self.remove_general_connection(conn, 'remote unexpectedly closed down connection during sending acknowledgement: {} {}'.format(type(e), e))
             except Exception as e:
-                self.remove_general_connection(conn, f'internal error on sending response: {type(e)} {e}')
+                self.remove_general_connection(conn, 'internal error on sending response: {} {}'.format(type(e), e))

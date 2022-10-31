@@ -74,16 +74,16 @@ class Node:
 
         malicious_kwargs = set(self.kwargs) - set(signature.parameters)
         if malicious_kwargs:
-            raise Exception(f'Kwargs: {malicious_kwargs} are defined without being in function signature of function: {self.user_class.__name__}')
+            raise Exception('Kwargs: {} are defined without being in function signature of function: {}'.format(malicious_kwargs, self.user_class.__name__))
 
         for name, param in signature.parameters.items():
             if param.kind == param.POSITIONAL_ONLY:
-                raise Exception(f'Parameter: {name} of function: {self.user_class.__name__} is POSITIONAL_ONLY, which is not allowed. All Parameters must allow for keyword style supply.')
+                raise Exception('Parameter: {} of function: {} is POSITIONAL_ONLY, which is not allowed. All Parameters must allow for keyword style supply.'.format(name, self.user_class.__name__))
             if name not in self.kwargs:
                 if param.kind == param.VAR_POSITIONAL or param.kind == param.VAR_KEYWORD:
                     pass  # ignore for now or maybe raise exception, because unnecessary parameters should be left out of function signature
                 elif param.default == param.empty:
-                    raise Exception(f'Parameter: {name} of function: {self.user_class.__name__} has no default value, but is not supplied in kwargs.')
+                    raise Exception('Parameter: {} of function: {} has no default value, but is not supplied in kwargs.'.format(name, self.user_class.__name__))
 
 
 class Edge:

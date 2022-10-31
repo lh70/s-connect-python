@@ -64,7 +64,7 @@ class Assignment:
         pipe_type = pipeline_config['type']  # get here, so we get no confusing exceptions during the possible raise
 
         if pipe_id in self.pipelines and self.pipelines[pipe_id].connected:
-            raise AssignmentException(f'pipe_id {pipe_id} has already a valid pipeline connection (during creating {pipe_type} pipeline)')
+            raise AssignmentException('pipe_id {} has already a valid pipeline connection (during creating {} pipeline)'.format(pipe_id, pipe_type))
 
         if pipe_type == 'input':
             host = pipeline_config['host']
@@ -89,13 +89,13 @@ class Assignment:
         elif pipe_type == 'local':
             self.pipelines[pipe_id] = LocalPipeline(pipe_id)  # local pipeline is always valid
         else:
-            raise AssignmentException(f'pipeline type {pipe_type} does not exist (during creating pipeline {pipe_id})')
+            raise AssignmentException('pipeline type {} does not exist (during creating pipeline {})'.format(pipe_type, pipe_id))
 
     def assign_output_pipeline(self, conn, pipe_id, time_frame_ms, heartbeat_ms):
         if pipe_id in self.pipelines:
             if self.pipelines[pipe_id].connected:
-                raise AssignmentException(f'pipe-id {pipe_id} has already a valid pipeline connection (during assign output pipeline)')
+                raise AssignmentException('pipe-id {} has already a valid pipeline connection (during assign output pipeline)'.format(pipe_id))
             else:
                 self.pipelines[pipe_id].activate(conn, time_frame_ms, heartbeat_ms)
         else:
-            raise AssignmentException(f'pipe-id {pipe_id} does not exists in outputs of assignment {self.assignment_id}')
+            raise AssignmentException('pipe-id {} does not exists in outputs of assignment {}'.format(pipe_id, self.assignment_id))

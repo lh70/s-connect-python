@@ -289,7 +289,7 @@ if __name__ == '__main__':
     device_flags = Flags()
 
     # run device code to remove ghost files/directories and create new directories
-    code_to_execute = f"SERIALIZED_BUILD_MTIMES='{build_mtimes.serialize()}'\n{DEVICE_CODE}"
+    code_to_execute = "SERIALIZED_BUILD_MTIMES='{}'\n{}".format(build_mtimes.serialize(), DEVICE_CODE)
     subprocess.run(['mpremote', 'exec', code_to_execute], check=True)
 
     # deploy modified and new files

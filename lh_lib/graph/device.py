@@ -14,7 +14,7 @@ class Device:
 
         for device in Device.instances:
             if device.host == host and device.port == port:
-                raise Exception(f'Devices {device.id} and {self.id} has same host/port configuration')
+                raise Exception('Devices {} and {} has same host/port configuration'.format(device.id, self.id))
 
         Device.instances.append(self)
         self.host = host
@@ -35,7 +35,7 @@ class Device:
         conn.close()
 
     def __repr__(self):
-        return f'Device {self.id} {self.host}:{self.port}'
+        return 'Device {} {}:{}'.format(self.id, self.host, self.port)
 
     def toJSON(self):
         return json.dumps({

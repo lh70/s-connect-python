@@ -55,9 +55,9 @@ class AbstractPipeline:
             # if ticks_ms_diff_to_current(self.last_data_exchange) > INPUT_PIPELINE_TIMEOUT_MS:
             #     self.invalidate("no data received for more than {} milliseconds".format(INPUT_PIPELINE_TIMEOUT_MS))
         except ConnectionClosedDownException as e:
-            self.invalidate(f'connection closed down: {e}')
+            self.invalidate('connection closed down: {}'.format(e))
         except InvalidDataException as e:
-            self.invalidate(f'invalid data: {e}')
+            self.invalidate('invalid data: {}'.format(e))
         else:
             if isinstance(obj, dict):
                 self.handle_control_message(obj)
@@ -65,7 +65,7 @@ class AbstractPipeline:
                 # currently no length check, so ram overflow is possible
                 self.buffer_in += obj
                 if len(self.buffer_in) > INPUT_PIPELINE_MAX_VALUES:
-                    self.invalidate(f'input buffer length > {INPUT_PIPELINE_MAX_VALUES} : {len(self.buffer_in)}')
+                    self.invalidate('input buffer length > {} : {}'.format(INPUT_PIPELINE_MAX_VALUES, len(self.buffer_in)))
 
     def must_send(self):
         if self.time_frame_ms == 0:
@@ -82,14 +82,14 @@ class AbstractPipeline:
             try:
                 self.conn.send(self.buffer_out)
             except ConnectionClosedDownException as e:
-                self.invalidate(f'connection closed down: {e}')
+                self.invalidate('connection closed down: {}'.format(e))
             else:
                 self.buffer_out.clear()
                 self.last_time_frame = ticks_ms()
                 self.last_data_exchange = ticks_ms()
 
     def handle_control_message(self, obj):
-        raise Exception(f'This pipeline {type(self)} {self.pipe_id} cannot handle control messages')
+        raise Exception('This pipeline {} {} cannot handle control messages'.format(type(self), self.pipe_id))
 
 
 class InputPipeline(AbstractPipeline):
@@ -131,14 +131,14 @@ class OutputPipeline(AbstractPipeline):
             if message_type == 'assignment_initialization':
                 self.assignment_initialized = True
             else:
-                raise Exception(f'unknown control-message type: {message_type}')
+                raise Exception('unknown control-message type: {}'.format(message_type))
         except Exception as e:
-            raise AssignmentException(f'unexpected error during processing pipeline control-message: {type(e)} {e}')
+            raise AssignmentException('unexpected error during processing pipeline control-message: {} {}'.format(type(e), e))
         else:
             try:
                 self.conn.send_acknowledgement()
             except ConnectionClosedDownException as e:
-                raise AssignmentException(f'remote unexpectedly closed down connection during sending acknowledgement: {type(e)} {e}')
+                raise AssignmentException('remote unexpectedly closed down connection during sending acknowledgement: {} {}'.format(type(e), e))
 
 
 class LocalPipeline(AbstractPipeline):

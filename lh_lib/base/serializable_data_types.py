@@ -42,7 +42,7 @@ class ControlMessageFilesystem(Message):
 
     def __init__(self, command, path, content=None, mtime=None):
         if command not in ControlMessageFilesystem.ALL_COMMANDS:
-            raise Exception(f'unknown filesystem command: {command}')
+            raise Exception('unknown filesystem command: {}'.format(command))
 
         if command == ControlMessageFilesystem.COMMAND_WRITE_FILE:
             if content is None or mtime is None:
