@@ -8,6 +8,6 @@ class MonitorLatest(SingleInputNoOutputUserNode):
     def run(self):
         if len(self.in0) > 0:
             os.system('cls' if os.name == 'nt' else 'clear')
-            print(f'MonitorLatest\n\nvalue: {self.in0[-1]}')
+            print('MonitorLatest\n\nvalue: {}'.format(self.in0[-1]))
 
         self.in0.clear()

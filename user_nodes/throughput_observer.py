@@ -24,7 +24,7 @@ class ThroughputObserver(SingleInputNoOutputUserNode):
             self.time = ticks_ms()
 
             os.system('cls' if os.name == 'nt' else 'clear')
-            print(f'Throughput Observer\n\ncurrent throughput: {self.sum} values/second')
+            print('Throughput Observer\n\ncurrent throughput: {} values/second'.format(self.sum))
 
             if self.filepath:
                 self.file.add(self.sum)

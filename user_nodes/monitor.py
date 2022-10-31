@@ -18,6 +18,6 @@ class Monitor(SingleInputNoOutputUserNode):
 
         if ticks_ms_diff_to_current(self.time) >= self.time_frame:
             os.system('cls' if os.name == 'nt' else 'clear')
-            print(f'Monitor\n\ntimeframe: {self.time_frame}ms\nvalues: {self.values}')
+            print('Monitor\n\ntimeframe: {}ms\nvalues: {}'.format(self.time_frame, self.values))
             self.time = ticks_ms()
             self.values = []

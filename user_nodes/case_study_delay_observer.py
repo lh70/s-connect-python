@@ -35,7 +35,7 @@ class CaseStudyDelayObserver(DualInputNoOutputUserNode):
 
         if len(self.time_delays) > 0:
             os.system('cls' if os.name == 'nt' else 'clear')
-            print(f'Case Study Delay Observer\n\ntime delay: {self.time_delays}, queue: {self.queue}')
+            print('Case Study Delay Observer\n\ntime delay: {}, queue: {}'.format(self.time_delays, self.queue))
 
             if self.filepath:
                 for delay in self.time_delays:

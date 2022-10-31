@@ -35,7 +35,7 @@ def run():
 
     worker = Worker(port, SensorManager(Button, Dummy, Gyro, CO2, RotaryEncoder, Touch, Ultrasonic))
 
-    log(f'Worker started with port {port}')
+    log('Worker started with port {}'.format(port))
 
     while True:
         worker.update()

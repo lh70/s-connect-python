@@ -48,12 +48,12 @@ if __name__ == '__main__':
         sensor_manager = SensorManager(Dummy, Poti, Hall, Touch, Temperature, DHT11, Gyro, Ultrasonic, RotaryEncoder, CO2, Button)
 
         worker = Worker(DEFAULT_PORT, sensor_manager)
-        log(f'Worker started with port {DEFAULT_PORT}')
+        log('Worker started with port {}'.format(DEFAULT_PORT))
     except ImportError:
         from lh_lib.base.base_worker import Worker
 
         worker = Worker(DEFAULT_PORT)
-        log(f'Base Worker started with port {DEFAULT_PORT}')
+        log('Base Worker started with port {}'.format(DEFAULT_PORT))
 
     while True:
         worker.update()

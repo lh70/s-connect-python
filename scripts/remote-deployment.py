@@ -64,7 +64,7 @@ class Flags:
         print('saving new flags to device :flags.json')
         result = self.device.write_string_to_file(json.dumps({'PRE_COMPILE': PRE_COMPILE, 'NATIVE_CODE': NATIVE_CODE, 'MPY_MARCH': MPY_MARCH}), '/flags.json')
         if result['type'] == 'error':
-            raise Exception(f'failed on writing flags to device, return was: {result}')
+            raise Exception('failed on writing flags to device, return was: {}'.format(result))
 
 
 class MTimes:
@@ -116,10 +116,10 @@ class MTimes:
             self.struct = json.loads(result['data'].decode('utf8'))  # i know there is actually a utf8 encoded json string in this file
 
     def save_to_device(self):
-        print(f'saving new build m_times to device :m_times.json')
+        print('saving new build m_times to device :m_times.json')
         result = self.device.write_string_to_file(json.dumps(self.struct['build']), '/m_times.json')
         if result['type'] == 'error':
-            raise Exception(f'failed on writing m_times to device, return was: {result}')
+            raise Exception('failed on writing m_times to device, return was: {}'.format(result))
 
 
 class DeviceRemoteFilesystemAccess:
@@ -173,7 +173,7 @@ class DeviceRemoteFilesystemAccess:
 if __name__ == '__main__':
     # set working directory to repository root for the case that the script is not called from project root
     os.chdir(os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
-    print(f'changed working directory to: {os.getcwd()}')
+    print('changed working directory to: {}'.format(os.getcwd()))
 
     # check if device is reachable
     print('checking device access by opening remote connection...', end='', flush=True)
@@ -206,10 +206,10 @@ if __name__ == '__main__':
                     os.makedirs(os.path.dirname(out_fp))
 
                 if PRE_COMPILE:
-                    print(f'compiling file {lib_fp} to {out_fp}')
-                    subprocess.run(['mpy-cross', '-o', out_fp, f'-march={MPY_MARCH}', '-X', f'emit={"native" if NATIVE_CODE else "bytecode"}', lib_fp], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
+                    print('compiling file {} to {}'.format(lib_fp, out_fp))
+                    subprocess.run(['mpy-cross', '-o', out_fp, '-march={}'.format(MPY_MARCH), '-X', 'emit={}'.format("native" if NATIVE_CODE else "bytecode"), lib_fp], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
                 else:
-                    print(f'copying file {lib_fp} to {out_fp}')
+                    print('copying file {} to {}'.format(lib_fp, out_fp))
                     shutil.copy2(lib_fp, out_fp)
 
                 build_mtimes.add(out_fp, int(os.stat(lib_fp).st_mtime))  # using int cast, because esp32 float precision cannot handle this long float
@@ -232,10 +232,10 @@ if __name__ == '__main__':
             if fp in RESERVED_FILES:
                 continue  # these reserved files may not be deleted, even though they are not in lh_lib
 
-            print(f'removing ghost file {fp}')
+            print('removing ghost file {}'.format(fp))
             result = device.remove_file(fp)
             if result['type'] == 'error':
-                print(f'ghost file {fp} does not exist on filesystem. ignoring.')
+                print('ghost file {} does not exist on filesystem. ignoring.'.format(fp))
 
             dir_parts = parts[:-1]
             while len(dir_parts) > 0:
@@ -248,10 +248,10 @@ if __name__ == '__main__':
                     break
 
                 # empty directory
-                print(f'removing ghost directory {directory}')
+                print('removing ghost directory {}'.format(directory))
                 result = device.remove_directory(directory)
                 if result['type'] == 'error':
-                    raise Exception(f'ghost directory {directory} could not be removed, return was: {result}')
+                    raise Exception('ghost directory {} could not be removed, return was: {}'.format(directory, result))
                 dir_parts = parts[:-1]
 
     # create directories if they do not exist
@@ -270,20 +270,20 @@ if __name__ == '__main__':
 
             result = device.path_stat(partial_directory)
             if result['type'] == 'error':
-                print(f'creating non existent directory {partial_directory} on device')
+                print('creating non existent directory {} on device'.format(partial_directory))
                 result = device.make_directory(partial_directory)
                 if result['type'] == 'error':
-                    raise Exception(f'could not create directory {partial_directory}, return was {result}')
+                    raise Exception('could not create directory {}, return was {}'.format(partial_directory, result))
 
     # deploy modified and new files
     for parts in build_mtimes.as_list():
         src_fp = '/'.join(parts)
         dst_fp = '/'.join(parts[1:])
         if not device_flags.flags_match() or build_mtimes.get_m_time(parts) > device_mtimes.get_m_time(parts[1:]):
-            print(f'copying host file {src_fp} to device :{dst_fp}')
+            print('copying host file {} to device :{}'.format(src_fp, dst_fp))
             result = device.write_file_to_file(src_fp, dst_fp)
             if result['type'] == 'error':
-                raise Exception(f'failed on writing {src_fp} to device, return was: {result}')
+                raise Exception('failed on writing {} to device, return was: {}'.format(src_fp, result))
 
     device_flags.save_to_device()
 
@@ -292,15 +292,15 @@ if __name__ == '__main__':
         print('copying host file wlan.json to device :wlan.json')
         result = device.write_file_to_file('wlan.json', '/wlan.json')
         if result['type'] == 'error':
-            raise Exception(f'failed on writing wlan.json to device, return was: {result}')
+            raise Exception('failed on writing wlan.json to device, return was: {}'.format(result))
         print('copying host file boot.py to device :boot.py')
         result = device.write_file_to_file('boot.py', '/boot.py')
         if result['type'] == 'error':
-            raise Exception(f'failed on writing boot.json to device, return was: {result}')
+            raise Exception('failed on writing boot.json to device, return was: {}'.format(result))
         print('copying host file main.py to device :main.py')
         result = device.write_file_to_file('main.py', '/main.py')
         if result['type'] == 'error':
-            raise Exception(f'failed on writing main.json to device, return was: {result}')
+            raise Exception('failed on writing main.json to device, return was: {}'.format(result))
 
     print('rebooting device')
     device.reboot()

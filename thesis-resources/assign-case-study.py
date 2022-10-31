@@ -23,13 +23,13 @@ def run():
     elif sys.argv[1] == '3':
         from case_studies.case_study_3 import get_distribution
     else:
-        raise Exception(f'unknown case study selector {sys.argv[1]}')
+        raise Exception('unknown case study selector {}'.format(sys.argv[1]))
 
     ordered_devices, distribution = get_distribution()
 
     if len(sys.argv) == 3:
         if sys.argv[2] == 'print':
-            print(f'{ordered_devices}\n{distribution}')
+            print('{}\n{}'.format(ordered_devices, distribution))
         elif sys.argv[2] == 'order':
             for device in ordered_devices:
                 print(device)
@@ -39,26 +39,23 @@ def run():
                 try:
                     device.remove_assignment('0')
                 except (AcknowledgementException, TimeoutError, ConnectionRefusedError):
-                    raise Exception(
-                        f'Fatal Error: device {device.host}:{device.port} is not reachable. Please check if Framework is running.')
+                    raise Exception('Fatal Error: device {}:{} is not reachable. Please check if Framework is running.'.format(device.host, device.port))
         else:
-            raise Exception(f'unknown command: {sys.argv[1]}')
+            raise Exception('unknown command: {}'.format(sys.argv[1]))
     else:
         print('removing old assignments')
         for device in ordered_devices:
             try:
                 device.remove_assignment('0')
             except (AcknowledgementException, TimeoutError, ConnectionRefusedError):
-                raise Exception(
-                    f'Fatal Error: device {device.host}:{device.port} is not reachable. Please check if Framework is running.')
+                raise Exception('Fatal Error: device {}:{} is not reachable. Please check if Framework is running.'.format(device.host, device.port))
 
         print('assigning new assignment')
         for device in ordered_devices:
             try:
                 device.distribute_assignment(distribution)
             except AcknowledgementException:
-                raise Exception(
-                    f'Fatal Error: device {device.host}:{device.port} is not answering. Probably a fatal error occurred on the device. Please check.')
+                raise Exception('Fatal Error: device {}:{} is not answering. Probably a fatal error occurred on the device. Please check.'.format(device.host, device.port))
 
 
 if __name__ == "__main__":

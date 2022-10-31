@@ -119,10 +119,10 @@ class MTimes:
                 self.struct = json.load(f)
 
     def save_to_device(self):
-        print(f'saving new build/m_times.json to device :m_times.json')
+        print('saving new build/m_times.json to device :m_times.json')
         with open('build/m_times.json', 'w', encoding='utf8') as f:
             json.dump(self.struct['build'], f)  # we want struct relative to lh_lib
-        subprocess.run(['mpremote', 'fs', 'cp', f'build/m_times.json', f':m_times.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
+        subprocess.run(['mpremote', 'fs', 'cp', 'build/m_times.json', ':m_times.json'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
 
 
 """
@@ -187,11 +187,11 @@ for parts in device_mtimes.as_list():
         if fp in RESERVED_FILES:
             continue  # these reserved files may not be deleted, even though they are not in lh_lib
         
-        print(f'removing ghost file {fp}')
+        print('removing ghost file {}'.format(fp))
         try:
             os.remove(fp)
         except OSError:
-            print(f'ghost file {fp} does not exist on filesystem. ignoring.')
+            print('ghost file {} does not exist on filesystem. ignoring.'.format(fp))
 
         dir_parts = parts[:-1]
         while len(dir_parts) > 0:
@@ -202,7 +202,7 @@ for parts in device_mtimes.as_list():
                     break
                 else:
                     # empty directory
-                    print(f'removing ghost directory {directory}')
+                    print('removing ghost directory {}'.format(directory))
                     os.rmdir(directory)
             except OSError:
                 # non existent directory
@@ -213,7 +213,7 @@ for parts in device_mtimes.as_list():
 try:
     os.stat('lh_lib')
 except OSError:
-    print(f'creating non existent directory lh_lib on device')
+    print('creating non existent directory lh_lib on device')
     os.mkdir('lh_lib')
 
 unique_directories = []
@@ -232,7 +232,7 @@ for directory in unique_directories:
         try:
             os.stat(partial_directory)
         except OSError:
-            print(f'creating non existent directory {partial_directory} on device')
+            print('creating non existent directory {} on device'.format(partial_directory))
             os.mkdir(partial_directory)
 """
 
@@ -240,7 +240,7 @@ for directory in unique_directories:
 if __name__ == '__main__':
     # set working directory to repository root for the case that the script is not called from project root
     os.chdir(os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
-    print(f'changed working directory to: {os.getcwd()}')
+    print('changed working directory to: {}'.format(os.getcwd()))
 
     # check if device is reachable
     print('checking device access (with "mpremote fs ls")...', end='', flush=True)
@@ -273,10 +273,10 @@ if __name__ == '__main__':
                     os.makedirs(os.path.dirname(out_fp))
 
                 if PRE_COMPILE:
-                    print(f'compiling file {lib_fp} to {out_fp}')
-                    subprocess.run(['mpy-cross', '-o', out_fp, f'-march={MPY_MARCH}', '-X', f'emit={"native" if NATIVE_CODE else "bytecode"}', lib_fp], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
+                    print('compiling file {} to {}'.format(lib_fp, out_fp))
+                    subprocess.run(['mpy-cross', '-o', out_fp, '-march={}'.format(MPY_MARCH), '-X', 'emit={}'.format("native" if NATIVE_CODE else "bytecode"), lib_fp], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
                 else:
-                    print(f'copying file {lib_fp} to {out_fp}')
+                    print('copying file {} to {}'.format(lib_fp, out_fp))
                     shutil.copy2(lib_fp, out_fp)
 
                 build_mtimes.add(out_fp, int(os.stat(lib_fp).st_mtime))  # using int cast, because esp32 float precision cannot handle this long float
@@ -297,8 +297,8 @@ if __name__ == '__main__':
         src_fp = '/'.join(parts)
         dst_fp = '/'.join(parts[1:])
         if not device_flags.flags_match() or build_mtimes.get_m_time(parts) > device_mtimes.get_m_time(parts[1:]):
-            print(f'copying host file {src_fp} to device :{dst_fp}')
-            subprocess.run(['mpremote', 'fs', 'cp', src_fp, f':{dst_fp}'], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
+            print('copying host file {} to device :{}'.format(src_fp, dst_fp))
+            subprocess.run(['mpremote', 'fs', 'cp', src_fp, ':{}'.format(dst_fp)], stderr=subprocess.PIPE, stdout=subprocess.PIPE, check=True)
 
     device_flags.save_to_device()
     build_mtimes.save_to_device()

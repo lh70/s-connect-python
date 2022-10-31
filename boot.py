@@ -13,7 +13,7 @@ We will activate WiFi station-connection, but not WebREPl (web cli) as it is not
 try:
     from lh_lib.base.network_stack.wlan import connect, ifconfig
     connect()
-    print(f'network config: {ifconfig()}\n')
+    print('network config: {}\n'.format(ifconfig()))
 except KeyboardInterrupt:
     print('interrupt by user...moving on without wlan\n')
 except ImportError:

@@ -29,7 +29,7 @@ for idx, fp in enumerate(filepaths):
     for t in (i for i in tuples if i):
         ts, val = t.split(',')
 
-        converted += f'{round((float(ts)-first_ts)/1000)} {val}\n'
+        converted += '{} {}\n'.format(round((float(ts)-first_ts)/1000), val)
 
     with open(converted_filepaths[idx], mode='w') as f:
         f.write(converted)
