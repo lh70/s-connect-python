@@ -32,8 +32,8 @@ DEPLOY_BASE_ONLY = False  # if set, deploys only the base module with the base_w
 
 PRE_COMPILE = True  # Pre-compiles files to .mpy format
 NATIVE_CODE = False  # True currently not usable. Uses to much RAM on device. Alternative: use the @micropython.native function decorator
-MPY_MARCH = 'xtensawin'  # ESP32
-# MPY_MARCH = 'xtensa'  # ESP8266
+# MPY_MARCH = 'xtensawin'  # ESP32
+MPY_MARCH = 'xtensa'  # ESP8266
 
 if sys.implementation.name == 'micropython':
     raise Exception("Call this script on a host platform with your microcontroller connected! (python local-deployment.py)")
@@ -248,15 +248,15 @@ if __name__ == '__main__':
     print('check')
 
     # remove old build directory
-    print('removing old build directory')
-    shutil.rmtree('build')
+    if os.path.isdir('build'):
+        print('removing old build directory')
+        shutil.rmtree('build')
 
     # create new build_m_times
     build_mtimes = MTimes()
 
     # build files
-    if not os.path.isdir('build'):
-        os.mkdir('build')
+    os.mkdir('build')
 
     directory_to_deploy = 'lh_lib/base' if DEPLOY_BASE_ONLY else 'lh_lib'
 

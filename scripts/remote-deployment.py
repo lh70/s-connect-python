@@ -181,15 +181,15 @@ if __name__ == '__main__':
     print('check')
 
     # remove old build directory
-    print('removing old build directory')
-    shutil.rmtree('build')
+    if os.path.isdir('build'):
+        print('removing old build directory')
+        shutil.rmtree('build')
 
     # create new build_m_times
     build_mtimes = MTimes()
 
     # build files
-    if not os.path.isdir('build'):
-        os.mkdir('build')
+    os.mkdir('build')
 
     directory_to_deploy = 'lh_lib/base' if DEPLOY_BASE_ONLY else 'lh_lib'
 
