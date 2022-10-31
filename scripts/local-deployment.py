@@ -33,6 +33,7 @@ DEPLOY_BASE_ONLY = False  # if set, deploys only the base module with the base_w
 PRE_COMPILE = True  # Pre-compiles files to .mpy format
 NATIVE_CODE = False  # True currently not usable. Uses to much RAM on device. Alternative: use the @micropython.native function decorator
 MPY_MARCH = 'xtensawin'  # ESP32
+# MPY_MARCH = 'xtensa'  # ESP8266
 
 if sys.implementation.name == 'micropython':
     raise Exception("Call this script on a host platform with your microcontroller connected! (python local-deployment.py)")

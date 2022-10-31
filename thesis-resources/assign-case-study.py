@@ -6,10 +6,10 @@ import os
 import sys
 
 try:
-    from lh_lib.exceptions import AcknowledgementException
+    from lh_lib.base.exceptions import AcknowledgementException
 except ImportError:
     sys.path.insert(1, os.path.dirname(os.path.realpath(os.path.dirname(__file__))))
-    from lh_lib.exceptions import AcknowledgementException
+    from lh_lib.base.exceptions import AcknowledgementException
 
 
 def run():
