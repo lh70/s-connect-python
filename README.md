@@ -79,3 +79,30 @@ for example with: mpremote fs cp main.py :main.py
 # Notes for later
 Instead of using the py_lcd module, maybe port https://github.com/arduino-libraries/LiquidCrystal to micropython.
 It seems simple with low overhead.
+
+
+# natmodule setup
+This is a step-by-step guide on how to set up a toolchain to compile c-modules into a .mpy files for ESP32.
+1. If you are on Windows, setup wsl, and maybe use `Windows Terminal` (from Windows Store) for easy access/integration.
+2. The following is tested on Debian/Ubuntu, but should work on all distros
+3. Everything toolchain related will reside in `~/esp`. Feel free to adjust this.
+4. `cd ~; mkdir esp; cd esp`
+5. `git clone https://github.com/micropython/micropython.git`
+6. `cd micropython`
+7. `git checkout v1.19.1` replace the version with your currently deployed micropython version, \
+or else the module import will fail with `ValueError: incompatible .mpy file`
+8. `cd ~`
+9. `wget https://github.com/espressif/crosstool-NG/releases/download/esp-2022r1/xtensa-esp32-elf-gcc11_2_0-esp-2022r1-linux-amd64.tar.xz` \
+replace link with the current release of `xtensa-esp32-elf` on https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/tools/idf-tools.html#xtensa-esp32-elf
+10. `tar -xf xtensa-esp32-elf-gcc11_2_0-esp-2022r1-linux-amd64.tar.xz -C esp` replace tar-file with your downloaded one
+11. add `export PATH="$PATH:$HOME/esp/xtensa-esp32-elf/bin"` to your `~/.profile` if you are in a shell. \
+you can also manually export the path or make it otherwise available. \
+edit `~/.profile` for example with `nano ~/.profile`
+12. logout and login or use a new shell
+13. place the `minimal example` from https://docs.micropython.org/en/latest/develop/natmod.html#minimal-example in your project
+14. replace the following lines in the `Makefile`: \
+`MPY_DIR = ../../..` with `MPY_DIR = /home/YOUR_USER_NAME/esp/micropython` !!! `~/` will not work !!!\
+`ARCH = x64` with `ARCH = xtensawin`
+15. navigate to `.../factorial`. Windows users can navigate to windows-paths via `/mnt/c/...` `/mnt/d/...`
+16. `make`
+17. copy the .mpy module to your ESP32 and validate via `import factorial` that the version is correct
