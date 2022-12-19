@@ -31,9 +31,8 @@ latest_connected_network = None
 def connect():
     global latest_connected_network
 
-    # make sure wifi is reset
-    wlan.active(False)
-    wlan.active(True)
+    if not wlan.active():
+        wlan.active(True)
 
     while not wlan.isconnected():
         wlan_list = wlan.scan()
