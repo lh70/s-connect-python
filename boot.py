@@ -5,7 +5,7 @@ This script gets executed on every startup before main.py.
 We will activate WiFi station-connection, but not WebREPl (web cli) as it is not reliable
 """
 
-# import machine
+import machine
 # import webrepl
 # import os
 
@@ -20,10 +20,10 @@ except ImportError:
     print('lh_lib does not exist...moving on without wlan\n')
 
 
-# os.dupterm(None, 1) # disable REPL on UART(0)
+# os.dupterm(None, 1)  # disable REPL on UART(0)
 
-# machine.freq(240000000)  # ESP32 maximum frequency
-# print('adjusted machine frequency to max: 240MHz (default: 160MHz)\n\n')
+machine.freq(240000000)  # ESP32 maximum frequency
+print('adjusted machine frequency to max: 240MHz (default: 160MHz)\n\n')
 
 # machine.freq(160000000)  # ESP8266 maximum frequency
 # print('adjusted machine frequency to max: 160MHz (default: 80MHz)\n\n')

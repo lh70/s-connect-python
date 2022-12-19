@@ -9,6 +9,8 @@ program logic that should be run on micropython start (which is on poweron, or t
 """
 
 import sys
+import gc
+import time
 
 from lh_lib.base.constants import RUNNING_MICROPYTHON
 
@@ -57,3 +59,6 @@ if __name__ == '__main__':
 
     while True:
         worker.update()
+        # gc.collect()
+        # print("free: {}, used: {}".format(gc.mem_free(), gc.mem_alloc()))
+        # time.sleep(1)
